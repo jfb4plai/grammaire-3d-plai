@@ -28,7 +28,7 @@ header {
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 header img.logo {
-  height: 40px; width: 40px; border-radius: 6px; object-fit: cover;
+  height: 44px; width: auto; max-width: 80px; border-radius: 6px; object-fit: contain;
 }
 header h1 {
   color: #fff; font-size: 1.1rem; font-weight: 700; flex: 1;
@@ -213,11 +213,13 @@ header .btn-teacher:hover { background: #ec4899; color: #fff; }
   overflow: hidden; text-overflow: ellipsis;
   text-align: center;
 }
-.token-bar {
-  width: 100%; height: 6px; border-radius: 3px;
-  margin-top: 4px;
-  background: transparent;
+.token-assiette {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 5px;
+  min-height: 22px;
 }
+.token-assiette svg { max-width: 100%; height: auto; }
 
 /* ============================================================
    BOTTOM BAR
@@ -508,7 +510,7 @@ header .btn-teacher:hover { background: #ec4899; color: #fff; }
       <div class="tool-section-title" style="margin:10px 0 6px;">Options d'affichage</div>
       <div class="tp-options">
         <label class="tp-option">
-          <input type="checkbox" id="optArasaac" checked>
+          <input type="checkbox" id="optArasaac">
           Afficher pictogrammes ARASAAC
         </label>
         <label class="tp-option">
@@ -667,7 +669,7 @@ var pictoCache = {};
 
 // Options enseignant
 var opts = {
-  arasaac: true,
+  arasaac: false,
   word: true,
   symbol: true,
   manip: true,
@@ -841,9 +843,9 @@ function createTokenElement(td) {
   textEl.textContent = td.mot;
   el.appendChild(textEl);
 
-  // Barre fonction
+  // Assiette fonction (SVG)
   var barEl = document.createElement('div');
-  barEl.className = 'token-bar';
+  barEl.className = 'token-assiette';
   el.appendChild(barEl);
 
   // Drag (pointer events)
@@ -919,12 +921,12 @@ function renderTokenContent(td, el) {
     textEl.style.display = 'none';
   }
 
-  // --- Barre fonction ---
-  var barEl = el.querySelector('.token-bar');
+  // --- Assiette fonction (SVG) ---
+  var barEl = el.querySelector('.token-assiette');
   if (td.fonctionId !== null) {
-    barEl.style.background = FONCTIONS[td.fonctionId].couleur;
+    barEl.innerHTML = FONCTIONS[td.fonctionId].svgHtml;
   } else {
-    barEl.style.background = 'transparent';
+    barEl.innerHTML = '';
   }
 
   // --- Effacement ---
