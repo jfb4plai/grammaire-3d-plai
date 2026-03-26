@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grammaire 3D Interactive — PLAI</title>
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  background: #f0f2f8;
+  color: #1e1b4b;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+header {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 200;
+  background: #1e1b4b;
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+header img.logo {
+  height: 40px; width: 40px; border-radius: 6px; object-fit: cover;
+}
+header h1 {
+  color: #fff; font-size: 1.1rem; font-weight: 700; flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+header .btn-teacher {
+  background: transparent;
+  border: 2px solid #ec4899;
+  color: #ec4899;
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+header .btn-teacher:hover { background: #ec4899; color: #fff; }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.app-body {
+  position: fixed;
+  top: 56px; left: 0; right: 0;
+  bottom: 44px;
+  display: flex; flex-direction: row;
+}
+
+/* ============================================================
+   TOOLBOX
+   ============================================================ */
+.toolbox {
+  width: 270px; min-width: 270px;
+  background: #fff;
+  border-right: 1px solid #c7d2fe;
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 10px 8px;
+  gap: 10px;
+}
+.toolbox::-webkit-scrollbar { width: 4px; }
+.toolbox::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 2px; }
+
+.tool-section { border-bottom: 1px solid #e0e7ff; padding-bottom: 8px; }
+.tool-section-title {
+  font-size: 0.72rem; font-weight: 700; color: #6366f1;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+/* Textarea + Add */
+.phrase-input {
+  width: 100%; padding: 6px 8px;
+  border: 1px solid #c7d2fe; border-radius: 6px;
+  font-size: 0.85rem; resize: none; height: 56px;
+  font-family: inherit; color: #1e1b4b;
+}
+.phrase-input:focus { outline: none; border-color: #6366f1; }
+.btn-add {
+  width: 100%; margin-top: 5px;
+  background: #6366f1; color: #fff;
+  border: none; border-radius: 6px;
+  padding: 7px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-add:hover { background: #4f46e5; }
+
+/* Selection indicator */
+.sel-indicator {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f0f4ff; border-radius: 6px; padding: 5px 8px;
+  font-size: 0.8rem; color: #4338ca;
+}
+.btn-desel {
+  background: #e0e7ff; border: none; border-radius: 4px;
+  padding: 2px 8px; font-size: 0.75rem; cursor: pointer; color: #4338ca;
+}
+.btn-desel:hover { background: #c7d2fe; }
+
+/* Function / Nature buttons */
+.fonctions-list { display: flex; flex-direction: column; gap: 4px; }
+.btn-fonction {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 7px; border-radius: 6px;
+  border: 1px solid #e0e7ff; background: #f8f9ff;
+  cursor: pointer; font-size: 0.8rem; text-align: left;
+  transition: background 0.15s;
+}
+.btn-fonction:hover { background: #e0e7ff; }
+.btn-fonction svg { flex-shrink: 0; }
+
+.natures-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.btn-nature {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 4px; border-radius: 6px;
+  border: 1px solid #e0e7ff; background: #f8f9ff;
+  cursor: pointer; font-size: 0.72rem; text-align: center;
+  transition: background 0.15s;
+}
+.btn-nature:hover { background: #e0e7ff; }
+
+/* Manipulations */
+.manip-list { display: flex; flex-direction: column; gap: 4px; }
+.btn-manip {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 10px; border-radius: 6px;
+  border: 1px solid #d1fae5; background: #ecfdf5;
+  cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  transition: background 0.15s; color: #065f46;
+}
+.btn-manip:hover { background: #d1fae5; }
+.manip-section { display: none; }
+.manip-section.visible { display: block; }
+
+/* ============================================================
+   WORKSPACE
+   ============================================================ */
+#workspace {
+  flex: 1; position: relative; overflow: hidden;
+  background-color: #f8f9ff;
+  background-image:
+    linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* SVG layer for groups (behind tokens) */
+#svg-layer {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+}
+
+/* ============================================================
+   TOKEN
+   ============================================================ */
+.token {
+  position: absolute; z-index: 10;
+  display: flex; flex-direction: column; align-items: center;
+  background: #fff;
+  border: 2px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 5px 8px 4px;
+  cursor: grab;
+  user-select: none;
+  min-width: 70px;
+  box-shadow: 0 2px 6px rgba(99,102,241,0.12);
+  transition: box-shadow 0.15s, border-color 0.15s;
+  touch-action: none;
+}
+.token:hover { box-shadow: 0 4px 12px rgba(99,102,241,0.22); }
+.token.selected {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.35), 0 4px 12px rgba(99,102,241,0.22);
+}
+.token.dragging { opacity: 0.85; cursor: grabbing; z-index: 50; }
+.token.effaced { opacity: 0.3; }
+.token.effaced .token-text { text-decoration: line-through; }
+
+/* Close button */
+.token-close {
+  position: absolute; top: -7px; right: -7px;
+  width: 18px; height: 18px;
+  background: #ef4444; color: #fff;
+  border: none; border-radius: 50%; font-size: 11px; line-height: 18px;
+  text-align: center; cursor: pointer;
+  display: none; z-index: 20;
+  padding: 0;
+}
+.token:hover .token-close { display: block; }
+
+.token-picto {
+  width: 60px; height: 60px; object-fit: contain;
+  border-radius: 4px; display: block;
+  cursor: pointer;
+}
+.token-picto-placeholder {
+  width: 60px; height: 60px;
+  display: flex; align-items: center; justify-content: center;
+  background: #f0f2ff; border-radius: 4px; color: #a5b4fc; font-size: 22px;
+}
+.token-symbol { display: flex; justify-content: center; margin: 2px 0; }
+.token-text {
+  font-size: 0.85rem; font-weight: 600; color: #1e1b4b;
+  white-space: nowrap; max-width: 90px;
+  overflow: hidden; text-overflow: ellipsis;
+  text-align: center;
+}
+.token-bar {
+  width: 100%; height: 6px; border-radius: 3px;
+  margin-top: 4px;
+  background: transparent;
+}
+
+/* ============================================================
+   BOTTOM BAR
+   ============================================================ */
+.btm-toolbar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 44px;
+  background: #1e1b4b;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px; z-index: 200;
+}
+.btm-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #e0e7ff; border-radius: 8px;
+  padding: 5px 14px; font-size: 0.82rem; cursor: pointer;
+  transition: background 0.2s;
+}
+.btm-btn:hover { background: rgba(255,255,255,0.18); }
+.btm-btn.danger { border-color: #ef4444; color: #fca5a5; }
+.btm-btn.danger:hover { background: rgba(239,68,68,0.2); }
+
+/* ============================================================
+   TEACHER PANEL (slide from right)
+   ============================================================ */
+.teacher-panel {
+  position: fixed; top: 56px; right: 0; bottom: 44px;
+  width: 320px; z-index: 300;
+  background: #fff;
+  border-left: 2px solid #ec4899;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+.teacher-panel.open { transform: translateX(0); }
+.teacher-panel::-webkit-scrollbar { width: 4px; }
+.teacher-panel::-webkit-scrollbar-thumb { background: #f9a8d4; border-radius: 2px; }
+
+.tp-header {
+  background: linear-gradient(135deg, #be185d, #ec4899);
+  color: #fff; padding: 14px 16px;
+  font-weight: 700; font-size: 0.95rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.tp-close {
+  background: rgba(255,255,255,0.2); border: none; color: #fff;
+  border-radius: 50%; width: 26px; height: 26px; cursor: pointer;
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+.tp-close:hover { background: rgba(255,255,255,0.35); }
+
+.tp-body { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+/* Login form */
+.tp-login { display: flex; flex-direction: column; gap: 8px; }
+.tp-input {
+  width: 100%; padding: 8px 10px;
+  border: 1px solid #f9a8d4; border-radius: 6px;
+  font-size: 0.85rem; font-family: inherit;
+}
+.tp-input:focus { outline: none; border-color: #ec4899; }
+.btn-login {
+  background: #ec4899; color: #fff; border: none;
+  border-radius: 6px; padding: 8px;
+  font-weight: 700; font-size: 0.85rem; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-login:hover { background: #be185d; }
+.tp-error { color: #ef4444; font-size: 0.78rem; }
+.tp-status { color: #10b981; font-size: 0.82rem; font-weight: 600; }
+
+/* Options checkboxes */
+.tp-options { display: flex; flex-direction: column; gap: 7px; }
+.tp-option {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.82rem; cursor: pointer;
+}
+.tp-option input[type=checkbox] { accent-color: #ec4899; width: 15px; height: 15px; cursor: pointer; }
+
+/* RISS notes */
+.riss-note {
+  background: #fdf2f8; border-left: 3px solid #ec4899;
+  border-radius: 0 6px 6px 0; padding: 8px 10px;
+  font-size: 0.75rem; color: #831843; line-height: 1.5;
+}
+.riss-note strong { color: #9d174d; }
+.riss-note p { margin-top: 4px; font-style: italic; }
+.riss-section-title {
+  font-size: 0.72rem; font-weight: 700; color: #be185d;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+/* ============================================================
+   MODAL PICTO
+   ============================================================ */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55); z-index: 500;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: #fff; border-radius: 12px;
+  padding: 20px; width: 420px; max-width: 95vw;
+  max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-title {
+  font-size: 0.95rem; font-weight: 700; color: #1e1b4b;
+  margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;
+}
+.modal-close {
+  background: #e0e7ff; border: none; border-radius: 50%;
+  width: 28px; height: 28px; cursor: pointer;
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+.picto-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  margin-bottom: 12px;
+}
+.picto-option {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px; border: 2px solid #e0e7ff; border-radius: 8px;
+  cursor: pointer; transition: border-color 0.15s;
+}
+.picto-option:hover { border-color: #6366f1; }
+.picto-option img { width: 64px; height: 64px; object-fit: contain; }
+.picto-option.selected-opt { border-color: #f59e0b; background: #fffbeb; }
+.btn-custom-img {
+  width: 100%; padding: 8px; border-radius: 6px;
+  background: #f0f4ff; border: 1px dashed #6366f1;
+  color: #4338ca; font-size: 0.82rem; cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-custom-img:hover { background: #e0e7ff; }
+.btn-modal-ok {
+  width: 100%; margin-top: 10px; padding: 8px;
+  background: #6366f1; color: #fff; border: none;
+  border-radius: 6px; font-weight: 700; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-modal-ok:hover { background: #4f46e5; }
+
+/* ============================================================
+   TOAST NOTIFICATIONS
+   ============================================================ */
+.notif-container {
+  position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+  z-index: 600; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  pointer-events: none;
+}
+.notif {
+  background: #1e1b4b; color: #fff;
+  padding: 9px 20px; border-radius: 20px;
+  font-size: 0.85rem; font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  animation: notifFade 3s forwards;
+  pointer-events: none;
+}
+@keyframes notifFade {
+  0%   { opacity: 0; transform: translateY(10px); }
+  10%  { opacity: 1; transform: translateY(0); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print {
+  header, .toolbox, .btm-toolbar, .teacher-panel, .notif-container { display: none !important; }
+  .app-body { position: static !important; display: block !important; }
+  #workspace {
+    position: static !important;
+    width: 100% !important; height: auto !important;
+    min-height: 400px;
+    background-image: none !important;
+  }
+  .token {
+    position: static !important;
+    display: inline-flex !important;
+    margin: 8px !important;
+  }
+  .token-close { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header>
+  <img class="logo" src="PLAI.jpg" alt="Logo PLAI">
+  <h1>Grammaire 3D Interactive</h1>
+  <button class="btn-teacher" id="btnTeacher">Mode Enseignant</button>
+</header>
+
+<!-- ============================================================
+     APP BODY
+     ============================================================ -->
+<div class="app-body">
+
+  <!-- TOOLBOX -->
+  <aside class="toolbox" id="toolbox">
+
+    <!-- 1. Ajout de mots -->
+    <div class="tool-section">
+      <div class="tool-section-title">Phrase ou mot(s)</div>
+      <textarea class="phrase-input" id="phraseInput"
+        placeholder="Ex : Le chat dort.&#10;(Entrée = ajouter)"></textarea>
+      <button class="btn-add" id="btnAdd">&#x2795; Ajouter</button>
+    </div>
+
+    <!-- 2. Indicateur sélection -->
+    <div class="tool-section">
+      <div class="sel-indicator">
+        <span id="selCount">0 mot(s) sélectionné(s)</span>
+        <button class="btn-desel" id="btnDesel">Désélectionner</button>
+      </div>
+    </div>
+
+    <!-- 3. Fonctions (assiettes) -->
+    <div class="tool-section">
+      <div class="tool-section-title">Fonctions (assiettes)</div>
+      <div class="fonctions-list" id="fonctionsList"></div>
+    </div>
+
+    <!-- 4. Nature des mots -->
+    <div class="tool-section">
+      <div class="tool-section-title">Nature des mots</div>
+      <div class="natures-grid" id="naturesGrid"></div>
+    </div>
+
+    <!-- 5. Manipulations 3D -->
+    <div class="tool-section manip-section" id="manipSection">
+      <div class="tool-section-title">Manipulations 3D</div>
+      <div class="manip-list">
+        <button class="btn-manip" id="btnDeplacement">&#x1F3C4; Déplacement</button>
+        <button class="btn-manip" id="btnEffacement">&#x2702;&#xFE0F; Effacement</button>
+        <button class="btn-manip" id="btnSubstitution">&#x1F504; Substitution</button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- WORKSPACE -->
+  <main id="workspace">
+    <svg id="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
+  </main>
+
+</div>
+
+<!-- ============================================================
+     BOTTOM BAR
+     ============================================================ -->
+<div class="btm-toolbar">
+  <button class="btm-btn" id="btnExport">&#x1F4F7; Exporter</button>
+  <button class="btm-btn danger" id="btnClear">&#x1F5D1; Effacer tout</button>
+  <button class="btm-btn" id="btnFullscreen">&#x26F6; Plein écran</button>
+</div>
+
+<!-- ============================================================
+     TEACHER PANEL
+     ============================================================ -->
+<aside class="teacher-panel" id="teacherPanel">
+  <div class="tp-header">
+    <span>&#x1F393; Mode Enseignant</span>
+    <button class="tp-close" id="tpClose">&#x2715;</button>
+  </div>
+  <div class="tp-body" id="tpBody">
+
+    <!-- Login form -->
+    <div id="tpLoginSection">
+      <div class="tool-section-title" style="margin-bottom:8px;">Connexion</div>
+      <div class="tp-login">
+        <input class="tp-input" type="email" id="tpEmail" placeholder="Email enseignant">
+        <input class="tp-input" type="password" id="tpPassword" placeholder="Mot de passe">
+        <button class="btn-login" id="btnLogin">Se connecter</button>
+        <div class="tp-error" id="tpError"></div>
+      </div>
+    </div>
+
+    <!-- Options (visible une fois connecté) -->
+    <div id="tpOptionsSection" style="display:none;">
+      <div class="tp-status" id="tpStatus">&#x2713; Connecté</div>
+      <div class="tool-section-title" style="margin:10px 0 6px;">Options d'affichage</div>
+      <div class="tp-options">
+        <label class="tp-option">
+          <input type="checkbox" id="optArasaac" checked>
+          Afficher pictogrammes ARASAAC
+        </label>
+        <label class="tp-option">
+          <input type="checkbox" id="optWord" checked>
+          Afficher le mot sous le pictogramme
+        </label>
+        <label class="tp-option">
+          <input type="checkbox" id="optSymbol" checked>
+          Afficher les symboles de nature
+        </label>
+        <label class="tp-option">
+          <input type="checkbox" id="optManip" checked>
+          Activer les manipulations 3D
+        </label>
+        <label class="tp-option">
+          <input type="checkbox" id="optCustomImg" checked>
+          Autoriser images personnalisées
+        </label>
+      </div>
+    </div>
+
+    <!-- Ancrage scientifique RISS -->
+    <div>
+      <div class="riss-section-title" style="margin-bottom:8px;">&#x1F4DA; Ancrage scientifique (RISS)</div>
+
+      <div class="riss-note" style="margin-bottom:8px;">
+        <strong>Lechat, L. (2020)</strong> — Manipulations syntaxiques au cycle 4. DUMAS.<br>
+        <p>« La progression déplacement→effacement→substitution→encadrement structure l'acquisition des fonctions syntaxiques. Le support visuel réduit la charge procédurale. »</p>
+      </div>
+
+      <div class="riss-note" style="margin-bottom:8px;">
+        <strong>Boulanger, C. (2018)</strong> — Observer, manipuler, classer. DUMAS.<br>
+        <p>« L'activité de manipulation sur les groupes fonctionnels est plus efficace qu'un enseignement déclaratif pour les élèves en difficulté (dyslexie, TDAH). Le canal visuel + kinesthésique double la rétention. »</p>
+      </div>
+
+      <div class="riss-note" style="margin-bottom:8px;">
+        <strong>Monneret &amp; Poli (2022)</strong> — La grammaire du français CP à la 6e. HAL.<br>
+        <p>« Les critères de manipulation (effacement, déplacement, remplacement) sont les seuls outils fiables d'identification des groupes syntaxiques — supérieurs à la définition sémantique traditionnelle. »</p>
+      </div>
+
+      <div class="riss-note">
+        <strong>Macaire, C. (2025)</strong> — Traduction automatique vers des pictogrammes. HAL.<br>
+        <p>« ARASAAC est la banque de référence pour la CAA. Associer pictogramme + mot réduit la charge cognitive lexicale et ancre le sens pour les élèves présentant des troubles du langage. »</p>
+      </div>
+    </div>
+
+  </div>
+</aside>
+
+<!-- ============================================================
+     MODAL PICTO
+     ============================================================ -->
+<div class="modal-overlay" id="pictoModal">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span>Choisir un pictogramme</span>
+      <button class="modal-close" id="modalClose">&#x2715;</button>
+    </div>
+    <div class="picto-grid" id="pictoGrid"></div>
+    <button class="btn-custom-img" id="btnCustomImg" style="display:none;">
+      &#x1F4C1; Image personnalisée
+    </button>
+    <input type="file" id="fileInput" accept="image/*" style="display:none;">
+    <button class="btn-modal-ok" id="btnModalOk">Valider</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     NOTIFICATIONS TOAST
+     ============================================================ -->
+<div class="notif-container" id="notifContainer"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+/* ============================================================
+   DONNÉES : FONCTIONS (assiettes SVG)
+   ============================================================ */
+const FONCTIONS = [
+  {
+    id: 0, nom: 'Sujet', couleur: '#3366CC',
+    svgHtml: '<svg width="36" height="18" viewBox="0 0 36 18"><ellipse cx="18" cy="9" rx="17" ry="8" fill="#3366CC"/></svg>'
+  },
+  {
+    id: 1, nom: 'Groupe sujet', couleur: '#3366CC',
+    svgHtml: '<svg width="44" height="18" viewBox="0 0 44 18"><ellipse cx="22" cy="9" rx="17" ry="8" fill="#3366CC"/><ellipse cx="4" cy="9" rx="3.5" ry="5" fill="#3366CC" opacity="0.7"/><ellipse cx="40" cy="9" rx="3.5" ry="5" fill="#3366CC" opacity="0.7"/></svg>'
+  },
+  {
+    id: 2, nom: 'Prédicat', couleur: '#CC3333',
+    svgHtml: '<svg width="36" height="18" viewBox="0 0 36 18"><ellipse cx="18" cy="9" rx="17" ry="8" fill="#CC3333"/></svg>'
+  },
+  {
+    id: 3, nom: 'Compl. direct', couleur: '#CC3333',
+    svgHtml: '<svg width="36" height="18" viewBox="0 0 36 18"><ellipse cx="18" cy="9" rx="17" ry="8" fill="none" stroke="#CC3333" stroke-width="2"/></svg>'
+  },
+  {
+    id: 4, nom: 'Compl. de phrase', couleur: '#33AA66',
+    svgHtml: '<svg width="44" height="22" viewBox="0 0 44 22"><ellipse cx="22" cy="8" rx="16" ry="7" fill="#33AA66"/><rect x="8" y="15" width="28" height="4" rx="2" fill="#33AA66" opacity="0.7"/><circle cx="10" cy="20" r="3" fill="#33AA66"/><circle cx="34" cy="20" r="3" fill="#33AA66"/></svg>'
+  },
+  {
+    id: 5, nom: 'Compl. indirect', couleur: '#9933CC',
+    svgHtml: '<svg width="36" height="20" viewBox="0 0 36 20"><ellipse cx="18" cy="9" rx="17" ry="8" fill="none" stroke="#9933CC" stroke-width="2"/><line x1="3" y1="9" x2="33" y2="9" stroke="#9933CC" stroke-width="2"/></svg>'
+  },
+  {
+    id: 6, nom: 'Attribut du sujet', couleur: '#CC7700',
+    svgHtml: '<svg width="44" height="18" viewBox="0 0 44 18"><ellipse cx="22" cy="9" rx="17" ry="8" fill="none" stroke="#CC7700" stroke-width="2"/><line x1="2" y1="9" x2="10" y2="9" stroke="#CC7700" stroke-width="2"/><polygon points="2,6 2,12 7,9" fill="#CC7700"/><line x1="34" y1="9" x2="42" y2="9" stroke="#CC7700" stroke-width="2"/><polygon points="42,6 42,12 37,9" fill="#CC7700"/></svg>'
+  }
+];
+
+/* ============================================================
+   DONNÉES : NATURES (formes géométriques SVG 24x24)
+   ============================================================ */
+const NATURES = [
+  {
+    id: 0, nom: 'Nom',
+    svgHtml: '<svg width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" fill="#222"/></svg>'
+  },
+  {
+    id: 1, nom: 'Déterminant',
+    svgHtml: '<svg width="24" height="24" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" fill="#222"/></svg>'
+  },
+  {
+    id: 2, nom: 'Adjectif',
+    svgHtml: '<svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 22,22 2,22" fill="#222"/></svg>'
+  },
+  {
+    id: 3, nom: 'Verbe',
+    svgHtml: '<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#222"/></svg>'
+  },
+  {
+    id: 4, nom: 'Pronom',
+    svgHtml: '<svg width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8" fill="#222"/></svg>'
+  },
+  {
+    id: 5, nom: 'Préposition',
+    svgHtml: '<svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 22,12 12,22 2,12" fill="#222"/></svg>'
+  },
+  {
+    id: 6, nom: 'Adverbe',
+    svgHtml: '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M2,14 A10,10 0 0,1 22,14 Z" fill="#222"/></svg>'
+  },
+  {
+    id: 7, nom: 'Conjonction',
+    svgHtml: '<svg width="24" height="24" viewBox="0 0 24 24"><text x="4" y="20" font-size="20" font-weight="bold" fill="#222">+</text></svg>'
+  }
+];
+
+/* ============================================================
+   ÉTAT GLOBAL
+   ============================================================ */
+var tokens = [];
+var nextId = 1;
+var selectedIds = new Set();
+var pictoCache = {};
+
+// Options enseignant
+var opts = {
+  arasaac: true,
+  word: true,
+  symbol: true,
+  manip: true,
+  customImg: true
+};
+
+var teacherConnected = false;
+
+// Modal
+var modalTokenId = null;
+var modalSelectedPictoIdx = null;
+
+/* ============================================================
+   SUPABASE
+   ============================================================ */
+var SUPA_URL = 'https://otiorljbujqzruulmqrs.supabase.co';
+var SUPA_KEY = 'sb_publishable_txhpqAZpx_Yth8zFQ3J0QQ_f9QVU0nE';
+
+/* ============================================================
+   INIT : Construire les listes de boutons
+   ============================================================ */
+function buildFonctionsList() {
+  var list = document.getElementById('fonctionsList');
+  list.innerHTML = '';
+  FONCTIONS.forEach(function(f) {
+    var btn = document.createElement('button');
+    btn.className = 'btn-fonction';
+    btn.innerHTML = f.svgHtml + '<span>' + escHtml(f.nom) + '</span>';
+    btn.addEventListener('pointerdown', function(e) {
+      e.stopPropagation();
+      assignFonction(f.id);
+    });
+    list.appendChild(btn);
+  });
+}
+
+function buildNaturesGrid() {
+  var grid = document.getElementById('naturesGrid');
+  grid.innerHTML = '';
+  NATURES.forEach(function(n) {
+    var btn = document.createElement('button');
+    btn.className = 'btn-nature';
+    btn.innerHTML = n.svgHtml + '<span>' + escHtml(n.nom) + '</span>';
+    btn.addEventListener('pointerdown', function(e) {
+      e.stopPropagation();
+      assignNature(n.id);
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ============================================================
+   ARASAAC API
+   ============================================================ */
+function cleanWord(word) {
+  return word.toLowerCase().replace(/[^a-z\u00e0\u00e2\u00e6\u00e7\u00e9\u00e8\u00ea\u00eb\u00ee\u00ef\u00f4\u0153\u00f9\u00fb\u00fc\u00ff]/g, '').trim();
+}
+
+function fetchPictos(word) {
+  var key = cleanWord(word);
+  if (!key) return Promise.resolve([]);
+  if (pictoCache[key] !== undefined) return Promise.resolve(pictoCache[key]);
+  return fetch('https://api.arasaac.org/api/pictograms/fr/search/' + encodeURIComponent(key))
+    .then(function(resp) {
+      if (!resp.ok) { pictoCache[key] = []; return []; }
+      return resp.json().then(function(data) {
+        if (!Array.isArray(data)) { pictoCache[key] = []; return []; }
+        pictoCache[key] = data.slice(0, 8);
+        return pictoCache[key];
+      });
+    })
+    .catch(function() {
+      pictoCache[key] = [];
+      return [];
+    });
+}
+
+function pictoUrl(id) {
+  return 'https://static.arasaac.org/pictograms/' + id + '/' + id + '_500.png';
+}
+
+/* ============================================================
+   AJOUT DE TOKENS
+   ============================================================ */
+function addTokensFromPhrase(phrase) {
+  var workspace = document.getElementById('workspace');
+  // Tokeniser : mots + ponctuation séparée
+  var mots = phrase.match(/[\w\u00c0-\u024f]+|[^\s\w]/g);
+  if (!mots || !mots.length) return;
+
+  // Calculer position de départ Y
+  var existingEls = workspace.querySelectorAll('.token');
+  var baseY = 80;
+  if (existingEls.length) {
+    var maxBottom = 0;
+    existingEls.forEach(function(t) {
+      var b = parseInt(t.style.top || 0) + t.offsetHeight;
+      if (b > maxBottom) maxBottom = b;
+    });
+    baseY = maxBottom + 20;
+  }
+
+  var x = 20;
+  mots.forEach(function(mot) {
+    var td = {
+      id: nextId++,
+      mot: mot,
+      x: x,
+      y: baseY,
+      fonctionId: null,
+      natureId: null,
+      pictoOptions: [],
+      selectedPictoIdx: 0,
+      customImg: null,
+      effaced: false
+    };
+    tokens.push(td);
+
+    var el = createTokenElement(td);
+    workspace.appendChild(el);
+    x += el.offsetWidth + 12;
+
+    // Charger picto ARASAAC en arrière-plan
+    if (opts.arasaac) {
+      fetchPictos(mot).then(function(results) {
+        td.pictoOptions = results;
+        renderTokenContent(td, null);
+      });
+    }
+  });
+}
+
+/* ============================================================
+   CRÉATION D'UN ÉLÉMENT TOKEN
+   ============================================================ */
+function createTokenElement(td) {
+  var el = document.createElement('div');
+  el.className = 'token';
+  el.dataset.id = td.id;
+  el.style.left = td.x + 'px';
+  el.style.top = td.y + 'px';
+  el.style.touchAction = 'none';
+
+  // Bouton fermer
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'token-close';
+  closeBtn.textContent = '\u2715';
+  closeBtn.addEventListener('pointerdown', function(e) {
+    e.stopPropagation();
+    removeToken(td.id);
+  });
+  el.appendChild(closeBtn);
+
+  // Zone picto
+  var pictoWrap = document.createElement('div');
+  pictoWrap.className = 'token-picto-wrap';
+  el.appendChild(pictoWrap);
+
+  // Zone symbole nature
+  var symbolWrap = document.createElement('div');
+  symbolWrap.className = 'token-symbol';
+  el.appendChild(symbolWrap);
+
+  // Texte
+  var textEl = document.createElement('div');
+  textEl.className = 'token-text';
+  textEl.textContent = td.mot;
+  el.appendChild(textEl);
+
+  // Barre fonction
+  var barEl = document.createElement('div');
+  barEl.className = 'token-bar';
+  el.appendChild(barEl);
+
+  // Drag (pointer events)
+  setupDrag(el, td);
+
+  renderTokenContent(td, el);
+  return el;
+}
+
+/* ============================================================
+   RENDU DU CONTENU D'UN TOKEN
+   ============================================================ */
+function renderTokenContent(td, el) {
+  if (!el) el = document.querySelector('.token[data-id="' + td.id + '"]');
+  if (!el) return;
+
+  // --- Picto ---
+  var pictoWrap = el.querySelector('.token-picto-wrap');
+  pictoWrap.innerHTML = '';
+  if (opts.arasaac) {
+    var src = null;
+    if (td.customImg) {
+      src = td.customImg;
+    } else if (td.pictoOptions && td.pictoOptions.length > 0) {
+      var idx = Math.min(td.selectedPictoIdx || 0, td.pictoOptions.length - 1);
+      src = pictoUrl(td.pictoOptions[idx]._id);
+    }
+    if (src) {
+      var img = document.createElement('img');
+      img.className = 'token-picto';
+      img.src = src;
+      img.alt = td.mot;
+      img.draggable = false;
+      // Double-clic = ouvrir modal
+      img.addEventListener('dblclick', function(e) {
+        e.stopPropagation();
+        openPictoModal(td.id);
+      });
+      // Drag & drop image perso
+      if (opts.customImg) {
+        img.addEventListener('dragover', function(e) { e.preventDefault(); });
+        img.addEventListener('drop', function(e) {
+          e.preventDefault();
+          var file = e.dataTransfer.files[0];
+          if (file && file.type.indexOf('image/') === 0) {
+            loadCustomImg(file, td.id);
+          }
+        });
+      }
+      pictoWrap.appendChild(img);
+    } else {
+      // Placeholder
+      var ph = document.createElement('div');
+      ph.className = 'token-picto-placeholder';
+      ph.textContent = '\uD83D\uDDBC';
+      pictoWrap.appendChild(ph);
+    }
+  }
+
+  // --- Symbole nature ---
+  var symbolWrap = el.querySelector('.token-symbol');
+  symbolWrap.innerHTML = '';
+  if (opts.symbol && td.natureId !== null) {
+    symbolWrap.innerHTML = NATURES[td.natureId].svgHtml;
+  }
+
+  // --- Texte ---
+  var textEl = el.querySelector('.token-text');
+  if (opts.word || !opts.arasaac) {
+    textEl.style.display = '';
+    textEl.textContent = td.mot;
+  } else {
+    textEl.style.display = 'none';
+  }
+
+  // --- Barre fonction ---
+  var barEl = el.querySelector('.token-bar');
+  if (td.fonctionId !== null) {
+    barEl.style.background = FONCTIONS[td.fonctionId].couleur;
+  } else {
+    barEl.style.background = 'transparent';
+  }
+
+  // --- Effacement ---
+  if (td.effaced) {
+    el.classList.add('effaced');
+  } else {
+    el.classList.remove('effaced');
+  }
+
+  // --- Sélection ---
+  if (selectedIds.has(td.id)) {
+    el.classList.add('selected');
+  } else {
+    el.classList.remove('selected');
+  }
+}
+
+/* ============================================================
+   SUPPRESSION D'UN TOKEN
+   ============================================================ */
+function removeToken(id) {
+  tokens = tokens.filter(function(t) { return t.id !== id; });
+  selectedIds.delete(id);
+  var el = document.querySelector('.token[data-id="' + id + '"]');
+  if (el) el.remove();
+  updateSelIndicator();
+}
+
+/* ============================================================
+   DRAG (pointer events — compatible TBI)
+   ============================================================ */
+function setupDrag(el, td) {
+  var dragging = false;
+  var startPX, startPY, startTX, startTY;
+  var moved = false;
+
+  el.addEventListener('pointerdown', function(e) {
+    if (e.target.classList.contains('token-close')) return;
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    dragging = true;
+    moved = false;
+    startPX = e.clientX;
+    startPY = e.clientY;
+    startTX = td.x;
+    startTY = td.y;
+    el.classList.add('dragging');
+  });
+
+  el.addEventListener('pointermove', function(e) {
+    if (!dragging) return;
+    var dx = e.clientX - startPX;
+    var dy = e.clientY - startPY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+    td.x = startTX + dx;
+    td.y = startTY + dy;
+    el.style.left = td.x + 'px';
+    el.style.top = td.y + 'px';
+  });
+
+  el.addEventListener('pointerup', function(e) {
+    if (!dragging) return;
+    dragging = false;
+    el.classList.remove('dragging');
+    if (!moved) {
+      toggleSelection(td.id);
+    }
+  });
+
+  el.addEventListener('pointercancel', function() {
+    dragging = false;
+    el.classList.remove('dragging');
+  });
+}
+
+/* ============================================================
+   SÉLECTION
+   ============================================================ */
+function toggleSelection(id) {
+  if (selectedIds.has(id)) {
+    selectedIds.delete(id);
+  } else {
+    selectedIds.add(id);
+  }
+  var td = tokens.find(function(t) { return t.id === id; });
+  if (td) renderTokenContent(td, null);
+  updateSelIndicator();
+}
+
+function deselectAll() {
+  var prev = Array.from(selectedIds);
+  selectedIds.clear();
+  prev.forEach(function(id) {
+    var td = tokens.find(function(t) { return t.id === id; });
+    if (td) renderTokenContent(td, null);
+  });
+  updateSelIndicator();
+}
+
+function updateSelIndicator() {
+  document.getElementById('selCount').textContent = selectedIds.size + ' mot(s) sélectionné(s)';
+}
+
+/* ============================================================
+   ASSIGN FONCTION / NATURE
+   ============================================================ */
+function assignFonction(fonctionId) {
+  if (!selectedIds.size) { showNotif('Sélectionnez d\'abord des mots.'); return; }
+  selectedIds.forEach(function(id) {
+    var td = tokens.find(function(t) { return t.id === id; });
+    if (td) { td.fonctionId = fonctionId; renderTokenContent(td, null); }
+  });
+}
+
+function assignNature(natureId) {
+  if (!selectedIds.size) { showNotif('Sélectionnez d\'abord des mots.'); return; }
+  selectedIds.forEach(function(id) {
+    var td = tokens.find(function(t) { return t.id === id; });
+    if (td) { td.natureId = natureId; renderTokenContent(td, null); }
+  });
+}
+
+/* ============================================================
+   MANIPULATIONS 3D
+   ============================================================ */
+function doDeplacement() {
+  var found = 0;
+  tokens.forEach(function(td) {
+    var el = document.querySelector('.token[data-id="' + td.id + '"]');
+    if (!el) return;
+    if (td.fonctionId === 4) {
+      el.style.outline = '3px solid #10b981';
+      el.style.outlineOffset = '2px';
+      found++;
+      setTimeout(function() {
+        el.style.outline = '';
+        el.style.outlineOffset = '';
+      }, 3000);
+    }
+  });
+  if (found > 0) {
+    showNotif('Peut se déplacer en début ou fin de phrase !');
+  } else {
+    showNotif('Assignez d\'abord la fonction "Compl. de phrase" à un groupe.');
+  }
+}
+
+function doEffacement() {
+  if (!selectedIds.size) { showNotif('Sélectionnez des mots à effacer.'); return; }
+  selectedIds.forEach(function(id) {
+    var td = tokens.find(function(t) { return t.id === id; });
+    if (!td) return;
+    td.effaced = true;
+    renderTokenContent(td, null);
+    setTimeout(function() {
+      td.effaced = false;
+      renderTokenContent(td, null);
+    }, 3000);
+  });
+  showNotif('La phrase reste correcte sans ce groupe !');
+}
+
+function doSubstitution() {
+  if (!selectedIds.size) { showNotif('Sélectionnez des mots à substituer.'); return; }
+  showNotif('Remplaçable par un pronom \u2192 lequel ?');
+}
+
+/* ============================================================
+   RE-RENDER GLOBAL (changement d'option)
+   ============================================================ */
+function renderAllTokens() {
+  tokens.forEach(function(td) { renderTokenContent(td, null); });
+}
+
+/* ============================================================
+   MODAL PICTO
+   ============================================================ */
+function openPictoModal(tokenId) {
+  modalTokenId = tokenId;
+  modalSelectedPictoIdx = null;
+  var td = tokens.find(function(t) { return t.id === tokenId; });
+  if (!td) return;
+
+  var grid = document.getElementById('pictoGrid');
+  grid.innerHTML = '';
+  modalSelectedPictoIdx = td.selectedPictoIdx || 0;
+
+  if (td.pictoOptions && td.pictoOptions.length) {
+    td.pictoOptions.forEach(function(p, idx) {
+      var div = document.createElement('div');
+      div.className = 'picto-option' + (idx === modalSelectedPictoIdx ? ' selected-opt' : '');
+      var img = document.createElement('img');
+      img.src = pictoUrl(p._id);
+      img.alt = (p.keywords && p.keywords[0] && p.keywords[0].keyword) || '';
+      img.draggable = false;
+      div.appendChild(img);
+      (function(i) {
+        div.addEventListener('click', function() {
+          grid.querySelectorAll('.picto-option').forEach(function(d) { d.classList.remove('selected-opt'); });
+          div.classList.add('selected-opt');
+          modalSelectedPictoIdx = i;
+        });
+      })(idx);
+      grid.appendChild(div);
+    });
+  } else {
+    var msg = document.createElement('div');
+    msg.style.cssText = 'grid-column:1/-1;color:#6366f1;font-size:0.8rem;padding:10px;';
+    msg.textContent = 'Aucun pictogramme ARASAAC disponible pour ce mot.';
+    grid.appendChild(msg);
+  }
+
+  var btnCustom = document.getElementById('btnCustomImg');
+  btnCustom.style.display = opts.customImg ? '' : 'none';
+
+  document.getElementById('pictoModal').classList.add('open');
+}
+
+function closePictoModal() {
+  document.getElementById('pictoModal').classList.remove('open');
+  modalTokenId = null;
+}
+
+function applyModalSelection() {
+  if (modalTokenId === null) return;
+  var td = tokens.find(function(t) { return t.id === modalTokenId; });
+  if (!td) return;
+  if (modalSelectedPictoIdx !== null) {
+    td.selectedPictoIdx = modalSelectedPictoIdx;
+    td.customImg = null;
+  }
+  renderTokenContent(td, null);
+  closePictoModal();
+}
+
+function loadCustomImg(file, tokenId) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var td = tokens.find(function(t) { return t.id === tokenId; });
+    if (!td) return;
+    td.customImg = e.target.result;
+    renderTokenContent(td, null);
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ============================================================
+   NOTIFICATIONS TOAST
+   ============================================================ */
+function showNotif(msg) {
+  var container = document.getElementById('notifContainer');
+  var div = document.createElement('div');
+  div.className = 'notif';
+  div.textContent = msg;
+  container.appendChild(div);
+  setTimeout(function() { div.remove(); }, 3100);
+}
+
+/* ============================================================
+   CONNEXION SUPABASE
+   ============================================================ */
+function doLogin() {
+  var email = document.getElementById('tpEmail').value.trim();
+  var pwd = document.getElementById('tpPassword').value;
+  var errEl = document.getElementById('tpError');
+  errEl.textContent = '';
+  if (!email || !pwd) { errEl.textContent = 'Email et mot de passe requis.'; return; }
+
+  fetch(SUPA_URL + '/auth/v1/token?grant_type=password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY
+    },
+    body: JSON.stringify({ email: email, password: pwd })
+  })
+  .then(function(resp) { return resp.json(); })
+  .then(function(data) {
+    if (data.access_token) {
+      teacherConnected = true;
+      document.getElementById('tpLoginSection').style.display = 'none';
+      document.getElementById('tpOptionsSection').style.display = '';
+      document.getElementById('tpStatus').textContent = '\u2713 Connecté : ' + email;
+    } else {
+      errEl.textContent = data.error_description || data.msg || 'Identifiants incorrects.';
+    }
+  })
+  .catch(function() {
+    errEl.textContent = 'Erreur de connexion réseau.';
+  });
+}
+
+/* ============================================================
+   SYNC OPTIONS
+   ============================================================ */
+function syncOptions() {
+  opts.arasaac = document.getElementById('optArasaac').checked;
+  opts.word = document.getElementById('optWord').checked;
+  opts.symbol = document.getElementById('optSymbol').checked;
+  opts.manip = document.getElementById('optManip').checked;
+  opts.customImg = document.getElementById('optCustomImg').checked;
+
+  var manipSection = document.getElementById('manipSection');
+  if (opts.manip) {
+    manipSection.classList.add('visible');
+  } else {
+    manipSection.classList.remove('visible');
+  }
+
+  renderAllTokens();
+}
+
+/* ============================================================
+   EXPORT / CLEAR / FULLSCREEN
+   ============================================================ */
+function doExport() {
+  window.print();
+}
+
+function doClear() {
+  if (!tokens.length) return;
+  if (!confirm('Effacer tous les tokens du workspace ?')) return;
+  tokens.forEach(function(td) {
+    var el = document.querySelector('.token[data-id="' + td.id + '"]');
+    if (el) el.remove();
+  });
+  tokens = [];
+  selectedIds.clear();
+  updateSelIndicator();
+}
+
+function doFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+/* ============================================================
+   INITIALISATION
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+
+  buildFonctionsList();
+  buildNaturesGrid();
+
+  // Section manip visible par défaut (optManip=true)
+  document.getElementById('manipSection').classList.add('visible');
+
+  // Bouton Ajouter
+  document.getElementById('btnAdd').addEventListener('click', function() {
+    var val = document.getElementById('phraseInput').value.trim();
+    if (!val) return;
+    addTokensFromPhrase(val);
+    document.getElementById('phraseInput').value = '';
+  });
+
+  // Entrée dans textarea
+  document.getElementById('phraseInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById('btnAdd').click();
+    }
+  });
+
+  // Désélectionner
+  document.getElementById('btnDesel').addEventListener('click', deselectAll);
+
+  // Click sur workspace vide = désélectionner
+  document.getElementById('workspace').addEventListener('pointerdown', function(e) {
+    if (e.target === document.getElementById('workspace') ||
+        e.target === document.getElementById('svg-layer')) {
+      deselectAll();
+    }
+  });
+
+  // Manipulations
+  document.getElementById('btnDeplacement').addEventListener('click', doDeplacement);
+  document.getElementById('btnEffacement').addEventListener('click', doEffacement);
+  document.getElementById('btnSubstitution').addEventListener('click', doSubstitution);
+
+  // Bottom bar
+  document.getElementById('btnExport').addEventListener('click', doExport);
+  document.getElementById('btnClear').addEventListener('click', doClear);
+  document.getElementById('btnFullscreen').addEventListener('click', doFullscreen);
+
+  // Panneau enseignant
+  document.getElementById('btnTeacher').addEventListener('click', function() {
+    document.getElementById('teacherPanel').classList.toggle('open');
+  });
+  document.getElementById('tpClose').addEventListener('click', function() {
+    document.getElementById('teacherPanel').classList.remove('open');
+  });
+
+  // Connexion
+  document.getElementById('btnLogin').addEventListener('click', doLogin);
+  document.getElementById('tpPassword').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  // Options checkboxes
+  ['optArasaac','optWord','optSymbol','optManip','optCustomImg'].forEach(function(id) {
+    document.getElementById(id).addEventListener('change', syncOptions);
+  });
+
+  // Modal picto
+  document.getElementById('modalClose').addEventListener('click', closePictoModal);
+  document.getElementById('btnModalOk').addEventListener('click', applyModalSelection);
+  document.getElementById('pictoModal').addEventListener('pointerdown', function(e) {
+    if (e.target === document.getElementById('pictoModal')) closePictoModal();
+  });
+
+  // Image perso dans modal
+  document.getElementById('btnCustomImg').addEventListener('click', function() {
+    document.getElementById('fileInput').click();
+  });
+  document.getElementById('fileInput').addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (file && modalTokenId !== null) {
+      loadCustomImg(file, modalTokenId);
+      closePictoModal();
+    }
+    e.target.value = '';
+  });
+
+});
+</script>
+</body>
+</html>
