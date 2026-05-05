@@ -407,6 +407,7 @@ header .btn-teacher:hover { background: #ec4899; color: #fff; }
   .token-close { display: none !important; }
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -496,11 +497,27 @@ header .btn-teacher:hover { background: #ec4899; color: #fff; }
     <!-- Login form -->
     <div id="tpLoginSection">
       <div class="tool-section-title" style="margin-bottom:8px;">Connexion</div>
-      <div class="tp-login">
+      <div class="tp-login" id="tpLoginForm">
         <input class="tp-input" type="email" id="tpEmail" placeholder="Email enseignant">
         <input class="tp-input" type="password" id="tpPassword" placeholder="Mot de passe">
         <button class="btn-login" id="btnLogin">Se connecter</button>
         <div class="tp-error" id="tpError"></div>
+        <div style="text-align:center;margin-top:6px">
+          <button style="font-size:12px;background:none;border:none;color:#6b7280;cursor:pointer;text-decoration:underline" onclick="showTpResetSection()">Mot de passe oublié ?</button>
+        </div>
+      </div>
+      <div id="tpResetForm" style="display:none" class="tp-login">
+        <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Entre ton email pour recevoir un lien de réinitialisation.</p>
+        <input class="tp-input" type="email" id="tpResetEmail" placeholder="Email enseignant">
+        <div id="tpResetMsg" style="font-size:12px;min-height:16px;margin-bottom:4px"></div>
+        <button class="btn-login" onclick="sendTpReset()">Envoyer le lien</button>
+        <button style="margin-top:6px;background:#f3f4f6;color:#374151;border:none;border-radius:6px;padding:8px;cursor:pointer;width:100%" onclick="hideTpResetSection()">Annuler</button>
+      </div>
+      <div id="tpNewPwdForm" style="display:none" class="tp-login">
+        <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Choisis un nouveau mot de passe.</p>
+        <input class="tp-input" type="password" id="tpNewPwd" placeholder="Nouveau mot de passe (6 car. min.)">
+        <div id="tpNewPwdErr" style="font-size:12px;color:#dc2626;min-height:16px;margin-bottom:4px"></div>
+        <button class="btn-login" onclick="saveTpNewPassword()">Enregistrer</button>
       </div>
     </div>
 
@@ -687,6 +704,41 @@ var modalSelectedPictoIdx = null;
    ============================================================ */
 var SUPA_URL = 'https://otiorljbujqzruulmqrs.supabase.co';
 var SUPA_KEY = 'sb_publishable_txhpqAZpx_Yth8zFQ3J0QQ_f9QVU0nE';
+var _sbAuth = supabase.createClient(SUPA_URL, SUPA_KEY);
+function showTpResetSection(){
+  document.getElementById('tpLoginForm').style.display='none';
+  document.getElementById('tpResetForm').style.display='block';
+  document.getElementById('tpResetEmail').value=document.getElementById('tpEmail').value;
+}
+function hideTpResetSection(){
+  document.getElementById('tpResetForm').style.display='none';
+  document.getElementById('tpLoginForm').style.display='block';
+}
+async function sendTpReset(){
+  var email=document.getElementById('tpResetEmail').value.trim();
+  var msg=document.getElementById('tpResetMsg');
+  if(!email){msg.style.color='#dc2626';msg.textContent='Entre ton email d\'abord.';return;}
+  var res=await _sbAuth.auth.resetPasswordForEmail(email,{redirectTo:window.location.href});
+  if(res.error){msg.style.color='#dc2626';msg.textContent=res.error.message;return;}
+  msg.style.color='#059669';msg.textContent='Email envoyé ! Vérifie ta boîte mail.';
+}
+async function saveTpNewPassword(){
+  var pwd=document.getElementById('tpNewPwd').value.trim();
+  var err=document.getElementById('tpNewPwdErr');
+  if(pwd.length<6){err.textContent='6 caractères minimum.';return;}
+  var res=await _sbAuth.auth.updateUser({password:pwd});
+  if(res.error){err.textContent=res.error.message;return;}
+  document.getElementById('tpNewPwdForm').style.display='none';
+  document.getElementById('tpLoginForm').style.display='block';
+  alert('Mot de passe mis à jour !');
+}
+_sbAuth.auth.onAuthStateChange(function(event,session){
+  if(event==='PASSWORD_RECOVERY'){
+    document.getElementById('tpLoginForm').style.display='none';
+    document.getElementById('tpResetForm').style.display='none';
+    document.getElementById('tpNewPwdForm').style.display='block';
+  }
+});
 
 /* ============================================================
    INIT : Construire les listes de boutons
