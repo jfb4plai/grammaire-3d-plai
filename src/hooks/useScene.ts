@@ -111,6 +111,54 @@ export function useScene() {
     });
   }, []);
 
+  const doDeplacement = useCallback((containerSize: { x: number; y: number }) => {
+    let moved = 0;
+    setTokens((prev) =>
+      prev.map((t) => {
+        if (t.fonctionId !== 4) return t;
+        moved += 1;
+        const pixel = toPixels({ x: t.normX, y: t.normY }, containerSize);
+        const target = toNormalized({ x: 20, y: pixel.y }, containerSize);
+        return { ...t, normX: target.x, normY: target.y };
+      })
+    );
+    return moved;
+  }, []);
+
+  const doEffacement = useCallback(() => {
+    setSelectedIds((currentSelection) => {
+      if (!currentSelection.size) return currentSelection;
+      const ids = Array.from(currentSelection);
+      setTokens((prev) => prev.map((t) => (ids.includes(t.id) ? { ...t, effaced: true } : t)));
+      setTimeout(() => {
+        setTokens((prev) => prev.map((t) => (ids.includes(t.id) ? { ...t, effaced: false } : t)));
+      }, 3000);
+      return currentSelection;
+    });
+  }, []);
+
+  const doSubstitution = useCallback((pronoun: string) => {
+    setSelectedIds((currentSelection) => {
+      if (!currentSelection.size) return currentSelection;
+      const ids = Array.from(currentSelection);
+      setTokens((prev) => {
+        const [firstId, ...restIds] = ids;
+        return prev.map((t) => {
+          if (t.id === firstId) return { ...t, mot: pronoun, originalMot: t.originalMot ?? t.mot };
+          if (restIds.includes(t.id)) return { ...t, effaced: true };
+          return t;
+        });
+      });
+      return currentSelection;
+    });
+  }, []);
+
+  const undoSubstitution = useCallback(() => {
+    setTokens((prev) =>
+      prev.map((t) => (t.originalMot !== null ? { ...t, mot: t.originalMot, originalMot: null, effaced: false } : t))
+    );
+  }, []);
+
   const clearAll = useCallback(() => {
     setTokens([]);
     setSelectedIds(new Set());
@@ -135,6 +183,10 @@ export function useScene() {
     deselectAll,
     assignFonction,
     assignNature,
+    doDeplacement,
+    doEffacement,
+    doSubstitution,
+    undoSubstitution,
     clearAll,
     loadScene,
   };
