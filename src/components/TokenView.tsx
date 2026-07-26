@@ -23,7 +23,7 @@ export function TokenView({
   onSelect, onMove, onRemove, onOpenPictoModal,
 }: Props) {
   const elRef = useRef<HTMLDivElement | null>(null);
-  const dragState = useRef<{ startPX: number; startPY: number; moved: boolean } | null>(null);
+  const dragState = useRef<{ startPX: number; startPY: number; moved: boolean; curX: number; curY: number } | null>(null);
   const [dragging, setDragging] = useState(false);
 
   const pixel = toPixels({ x: token.normX, y: token.normY }, containerSize);
@@ -35,7 +35,7 @@ export function TokenView({
     if ((e.target as HTMLElement).dataset.closeBtn) return;
     e.preventDefault();
     elRef.current?.setPointerCapture(e.pointerId);
-    dragState.current = { startPX: e.clientX, startPY: e.clientY, moved: false };
+    dragState.current = { startPX: e.clientX, startPY: e.clientY, moved: false, curX: pixel.x, curY: pixel.y };
     setDragging(true);
   }
 
@@ -45,8 +45,10 @@ export function TokenView({
     const dy = e.clientY - dragState.current.startPY;
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragState.current.moved = true;
     const rect = elRef.current.getBoundingClientRect();
-    const newPixel = { x: pixel.x + dx, y: pixel.y + dy };
+    const newPixel = { x: dragState.current.curX + dx, y: dragState.current.curY + dy };
     onMove(token.id, newPixel, { x: rect.width, y: rect.height });
+    dragState.current.curX = newPixel.x;
+    dragState.current.curY = newPixel.y;
     dragState.current.startPX = e.clientX;
     dragState.current.startPY = e.clientY;
   }
