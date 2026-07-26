@@ -6,6 +6,16 @@ import { layoutTokensInRow } from '../lib/layout';
 import { clampToContainer, toNormalized, toPixels } from '../lib/coordinates';
 import { FONCTIONS } from '../lib/fonctions';
 
+function pruneOrphanGroups(tokens: TokenData[]): TokenData[] {
+  const counts = new Map<string, number>();
+  tokens.forEach((t) => {
+    if (t.groupId) counts.set(t.groupId, (counts.get(t.groupId) ?? 0) + 1);
+  });
+  return tokens.map((t) =>
+    t.groupId && (counts.get(t.groupId) ?? 0) < 2 ? { ...t, groupId: null } : t
+  );
+}
+
 export function useScene() {
   const [tokens, setTokens] = useState<TokenData[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -60,7 +70,7 @@ export function useScene() {
   }, []);
 
   const removeToken = useCallback((id: string) => {
-    setTokens((prev) => prev.filter((t) => t.id !== id));
+    setTokens((prev) => pruneOrphanGroups(prev.filter((t) => t.id !== id)));
     setSelectedIds((prev) => {
       const next = new Set(prev);
       next.delete(id);
@@ -86,7 +96,7 @@ export function useScene() {
       const ids = Array.from(currentSelection);
       const newGroupId = fonction?.isGroupType && ids.length > 1 ? crypto.randomUUID() : null;
       setTokens((prev) =>
-        prev.map((t) => (ids.includes(t.id) ? { ...t, fonctionId, groupId: newGroupId } : t))
+        pruneOrphanGroups(prev.map((t) => (ids.includes(t.id) ? { ...t, fonctionId, groupId: newGroupId } : t)))
       );
       return currentSelection;
     });
