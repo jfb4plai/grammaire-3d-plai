@@ -1,1 +1,249 @@
-/* Peuplé au Fil des tâches suivantes */
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: 'DM Sans', 'Segoe UI', Arial, sans-serif;
+  font-size: 14px;
+  background: #f0f2f8;
+  color: #1e1b4b;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+header {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 200;
+  background: #1e1b4b;
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+header img.logo {
+  height: 44px; width: auto; max-width: 80px; border-radius: 6px; object-fit: contain;
+}
+header h1 {
+  color: #fff; font-size: 1.1rem; font-weight: 700; flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+header .btn-teacher {
+  background: transparent;
+  border: 2px solid #ec4899;
+  color: #ec4899;
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+header .btn-teacher:hover { background: #ec4899; color: #fff; }
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.app-body {
+  position: fixed;
+  top: 56px; left: 0; right: 0;
+  bottom: 44px;
+  display: flex; flex-direction: row;
+}
+
+/* ============================================================
+   TOOLBOX
+   ============================================================ */
+.toolbox {
+  width: 270px; min-width: 270px;
+  background: #fff;
+  border-right: 1px solid #c7d2fe;
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 10px 8px;
+  gap: 10px;
+}
+.toolbox::-webkit-scrollbar { width: 4px; }
+.toolbox::-webkit-scrollbar-thumb { background: #c7d2fe; border-radius: 2px; }
+
+.tool-section { border-bottom: 1px solid #e0e7ff; padding-bottom: 8px; }
+.tool-section-title {
+  font-size: 0.72rem; font-weight: 700; color: #4f46e5;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.phrase-input {
+  width: 100%; padding: 6px 8px;
+  border: 1px solid #c7d2fe; border-radius: 6px;
+  font-size: 0.85rem; resize: none; height: 56px;
+  font-family: inherit; color: #1e1b4b;
+}
+.phrase-input:focus { outline: none; border-color: #6366f1; }
+.btn-add {
+  width: 100%; margin-top: 5px;
+  background: #6366f1; color: #fff;
+  border: none; border-radius: 6px;
+  padding: 7px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-add:hover { background: #4f46e5; }
+.field-help {
+  font-size: 0.7rem; color: #6b7280; line-height: 1.4; margin-top: 5px;
+}
+
+.sel-indicator {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f0f4ff; border-radius: 6px; padding: 5px 8px;
+  font-size: 0.8rem; color: #4338ca;
+}
+.btn-desel {
+  background: #e0e7ff; border: none; border-radius: 4px;
+  padding: 2px 8px; font-size: 0.75rem; cursor: pointer; color: #4338ca;
+}
+.btn-desel:hover { background: #c7d2fe; }
+
+.fonctions-list { display: flex; flex-direction: column; gap: 4px; }
+.btn-fonction {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 7px; border-radius: 6px;
+  border: 1px solid #e0e7ff; background: #f8f9ff;
+  cursor: pointer; font-size: 0.8rem; text-align: left;
+  transition: background 0.15s;
+}
+.btn-fonction:hover { background: #e0e7ff; }
+
+.natures-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.btn-nature {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 4px; border-radius: 6px;
+  border: 1px solid #e0e7ff; background: #f8f9ff;
+  cursor: pointer; font-size: 0.72rem; text-align: center;
+  transition: background 0.15s;
+}
+.btn-nature:hover { background: #e0e7ff; }
+
+.manip-list { display: flex; flex-direction: column; gap: 4px; }
+.btn-manip {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 10px; border-radius: 6px;
+  border: 1px solid #d1fae5; background: #ecfdf5;
+  cursor: pointer; font-size: 0.82rem; font-weight: 600;
+  transition: background 0.15s; color: #065f46;
+}
+.btn-manip:hover { background: #d1fae5; }
+
+/* ============================================================
+   WORKSPACE
+   ============================================================ */
+#workspace {
+  flex: 1; position: relative; overflow: hidden;
+  background-color: #f8f9ff;
+  background-image:
+    linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.group-layer {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+}
+
+/* ============================================================
+   TOKEN
+   ============================================================ */
+.token {
+  position: absolute; z-index: 10;
+  display: flex; flex-direction: column; align-items: center;
+  background: #fff;
+  border: 2px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 5px 8px 4px;
+  cursor: grab;
+  user-select: none;
+  min-width: 70px;
+  box-shadow: 0 2px 6px rgba(99,102,241,0.12);
+  transition: box-shadow 0.15s, border-color 0.15s;
+  touch-action: none;
+}
+.token:hover { box-shadow: 0 4px 12px rgba(99,102,241,0.22); }
+.token-selected {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.35), 0 4px 12px rgba(99,102,241,0.22);
+}
+.token-dragging { opacity: 0.85; cursor: grabbing; z-index: 50; }
+.token-effaced { opacity: 0.3; }
+.token-effaced .token-text { text-decoration: line-through; }
+
+.token-close {
+  position: absolute; top: -7px; right: -7px;
+  width: 18px; height: 18px;
+  background: #ef4444; color: #fff;
+  border: none; border-radius: 50%; font-size: 11px; line-height: 18px;
+  text-align: center; cursor: pointer;
+  display: none; z-index: 20;
+  padding: 0;
+}
+.token:hover .token-close, .token-selected .token-close { display: block; }
+
+.token-picto, .token-picto-placeholder {
+  width: 60px; height: 60px; object-fit: contain;
+  border-radius: 4px; display: block;
+  cursor: pointer;
+}
+.token-picto-placeholder {
+  display: flex; align-items: center; justify-content: center;
+  background: #f0f2ff; color: #a5b4fc; font-size: 22px;
+}
+.token-symbol { display: flex; justify-content: center; margin: 2px 0; }
+.token-text {
+  font-size: 0.85rem; font-weight: 600; color: #1e1b4b;
+  white-space: nowrap; max-width: 90px;
+  overflow: hidden; text-overflow: ellipsis;
+  text-align: center;
+}
+.token-assiette {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 5px;
+  min-height: 22px;
+}
+.token-assiette svg { max-width: 100%; height: auto; }
+
+/* ============================================================
+   BOTTOM BAR
+   ============================================================ */
+.btm-toolbar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 44px;
+  background: #1e1b4b;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px; z-index: 200;
+}
+.btm-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #e0e7ff; border-radius: 8px;
+  padding: 5px 14px; font-size: 0.82rem; cursor: pointer;
+  transition: background 0.2s;
+}
+.btm-btn:hover { background: rgba(255,255,255,0.18); }
+.btm-btn.danger { border-color: #ef4444; color: #fca5a5; }
+.btm-btn.danger:hover { background: rgba(239,68,68,0.2); }
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+@media print {
+  header, .toolbox, .btm-toolbar, .teacher-panel, .notif-container { display: none !important; }
+  .app-body { position: static !important; display: block !important; }
+  #workspace {
+    position: static !important;
+    width: 100% !important; height: auto !important;
+    min-height: 400px;
+    background-image: none !important;
+  }
+  .group-layer { display: none !important; }
+  .token {
+    position: static !important;
+    display: inline-flex !important;
+    margin: 8px !important;
+  }
+  .token-close { display: none !important; }
+}
