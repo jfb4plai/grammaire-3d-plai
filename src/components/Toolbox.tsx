@@ -34,6 +34,9 @@ export function Toolbox({ selectedCount, manipEnabled, onAddPhrase, onDeselectAl
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitPhrase(); } }}
         />
         <button type="button" className="btn-add" onClick={submitPhrase}>➕ Ajouter</button>
+        <p className="field-help">
+          Chaque mot devient une étiquette à déplacer ; la ponctuation forme aussi ses propres étiquettes.
+        </p>
       </div>
 
       <div className="tool-section">
