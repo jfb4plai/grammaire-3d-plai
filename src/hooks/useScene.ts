@@ -137,10 +137,12 @@ export function useScene() {
     });
   }, []);
 
-  const doSubstitution = useCallback((pronoun: string) => {
+  const doSubstitution = useCallback((pronoun: string): string[] => {
+    let affectedIds: string[] = [];
     setSelectedIds((currentSelection) => {
       if (!currentSelection.size) return currentSelection;
       const ids = Array.from(currentSelection);
+      affectedIds = ids;
       setTokens((prev) => {
         const [firstId, ...restIds] = ids;
         return prev.map((t) => {
@@ -151,11 +153,14 @@ export function useScene() {
       });
       return currentSelection;
     });
+    return affectedIds;
   }, []);
 
-  const undoSubstitution = useCallback(() => {
+  const undoSubstitution = useCallback((ids: string[]) => {
     setTokens((prev) =>
-      prev.map((t) => (t.originalMot !== null ? { ...t, mot: t.originalMot, originalMot: null, effaced: false } : t))
+      prev.map((t) =>
+        ids.includes(t.id) ? { ...t, mot: t.originalMot ?? t.mot, originalMot: null, effaced: false } : t
+      )
     );
   }, []);
 
