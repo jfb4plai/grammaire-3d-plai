@@ -33,4 +33,14 @@ describe('layoutTokensInRow', () => {
       expect(p.normY).toBeLessThanOrEqual(1);
     }
   });
+
+  it('never wraps or loops forever on a single word wider than the container', () => {
+    const longWord = 'unmotextremementlongquidepasselelargeurentiereduconteneur';
+    const placed = layoutTokensInRow([longWord], { x: 100, y: 200 }, 80);
+    expect(placed).toHaveLength(1);
+    expect(placed[0].normX).toBeGreaterThanOrEqual(0);
+    expect(placed[0].normX).toBeLessThanOrEqual(1);
+    expect(placed[0].normY).toBeGreaterThanOrEqual(0);
+    expect(placed[0].normY).toBeLessThanOrEqual(1);
+  });
 });
