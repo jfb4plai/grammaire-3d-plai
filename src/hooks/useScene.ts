@@ -113,15 +113,27 @@ export function useScene() {
 
   const doDeplacement = useCallback((containerSize: { x: number; y: number }) => {
     let moved = 0;
-    setTokens((prev) =>
-      prev.map((t) => {
+    setTokens((prev) => {
+      const targets = prev.filter((t) => t.fonctionId === 4);
+      if (!targets.length) return prev;
+      moved = targets.length;
+
+      const groupDeltaX = new Map<string, number>();
+      targets.forEach((t) => {
+        if (!t.groupId || groupDeltaX.has(t.groupId)) return;
+        const members = targets.filter((m) => m.groupId === t.groupId);
+        const anchorX = Math.min(...members.map((m) => toPixels({ x: m.normX, y: m.normY }, containerSize).x));
+        groupDeltaX.set(t.groupId, 20 - anchorX);
+      });
+
+      return prev.map((t) => {
         if (t.fonctionId !== 4) return t;
-        moved += 1;
         const pixel = toPixels({ x: t.normX, y: t.normY }, containerSize);
-        const target = toNormalized({ x: 20, y: pixel.y }, containerSize);
+        const deltaX = t.groupId ? groupDeltaX.get(t.groupId)! : 20 - pixel.x;
+        const target = toNormalized({ x: pixel.x + deltaX, y: pixel.y }, containerSize);
         return { ...t, normX: target.x, normY: target.y };
-      })
-    );
+      });
+    });
     return moved;
   }, []);
 
