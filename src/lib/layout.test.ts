@@ -1,0 +1,36 @@
+import { describe, it, expect } from 'vitest';
+import { layoutTokensInRow, estimateTokenWidth } from './layout';
+
+describe('estimateTokenWidth', () => {
+  it('grows with word length and has a floor', () => {
+    expect(estimateTokenWidth('a')).toBeGreaterThanOrEqual(70);
+    expect(estimateTokenWidth('anticonstitutionnellement')).toBeGreaterThan(estimateTokenWidth('a'));
+  });
+});
+
+describe('layoutTokensInRow', () => {
+  it('places short words left to right on one row', () => {
+    const placed = layoutTokensInRow(['Le', 'chat', 'dort'], { x: 2000, y: 1000 }, 80);
+    expect(placed).toHaveLength(3);
+    expect(placed[0].normY).toBe(placed[1].normY);
+    expect(placed[1].normX).toBeGreaterThan(placed[0].normX);
+  });
+
+  it('wraps to a new row when a word would overflow the container width', () => {
+    const words = Array.from({ length: 20 }, (_, i) => `mot${i}`);
+    const placed = layoutTokensInRow(words, { x: 600, y: 2000 }, 80);
+    const rows = new Set(placed.map((p) => p.normY));
+    expect(rows.size).toBeGreaterThan(1);
+  });
+
+  it('keeps every placement within [0,1] on both axes', () => {
+    const words = Array.from({ length: 30 }, (_, i) => `mot-assez-long-${i}`);
+    const placed = layoutTokensInRow(words, { x: 500, y: 400 }, 80);
+    for (const p of placed) {
+      expect(p.normX).toBeGreaterThanOrEqual(0);
+      expect(p.normX).toBeLessThanOrEqual(1);
+      expect(p.normY).toBeGreaterThanOrEqual(0);
+      expect(p.normY).toBeLessThanOrEqual(1);
+    }
+  });
+});
