@@ -25,6 +25,6 @@ describe('tokenizePhrase', () => {
   });
 
   it('handles a curly apostrophe the same as a straight one', () => {
-    expect(tokenizePhrase("L'oiseau vole.")).toEqual(["L'", 'oiseau', 'vole', '.']);
+    expect(tokenizePhrase("L’oiseau vole.")).toEqual(["L’", 'oiseau', 'vole', '.']);
   });
 });
