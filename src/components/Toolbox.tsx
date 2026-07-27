@@ -48,6 +48,9 @@ export function Toolbox({ selectedCount, manipEnabled, onAddPhrase, onDeselectAl
 
       <div className="tool-section">
         <div className="tool-section-title">Fonctions (assiettes)</div>
+        <p className="field-help">
+          Assigner une fonction désélectionne automatiquement les mots (pour éviter d'enchaîner par erreur sur la même sélection). Assigner une nature garde la sélection, pour pouvoir ensuite lui donner une fonction sans re-sélectionner.
+        </p>
         <div className="fonctions-list">
           {FONCTIONS.map((f) => (
             <button key={f.id} type="button" className="btn-fonction" onClick={() => onAssignFonction(f.id)}>

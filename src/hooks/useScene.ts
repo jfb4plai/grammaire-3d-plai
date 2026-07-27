@@ -125,7 +125,11 @@ export function useScene() {
       setTokens((prev) =>
         pruneOrphanGroups(prev.map((t) => (ids.includes(t.id) ? { ...t, fonctionId, groupId: newGroupId } : t)))
       );
-      return currentSelection;
+      // Deselect after a fonction, unlike assignNature: assigning a fonction (assiette) usually
+      // closes the gesture on that group, so leaving it selected is what causes JF's "j'oublie de
+      // désélectionner" mis-click into the next assignment. Nature stays selected on purpose, since
+      // nature → fonction on the same token/group is the common two-step chain.
+      return new Set<string>();
     });
   }, []);
 
