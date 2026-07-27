@@ -228,6 +228,44 @@ header .btn-teacher:hover { background: #ec4899; color: #fff; }
 .btm-btn.danger:hover { background: rgba(239,68,68,0.2); }
 
 /* ============================================================
+   SUBSTITUTION PANEL
+   ============================================================ */
+.substitution-panel {
+  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
+  z-index: 400; background: #fff; border: 2px solid #6366f1; border-radius: 10px;
+  padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); min-width: 260px;
+}
+.substitution-panel-title { font-weight: 700; font-size: 0.85rem; margin-bottom: 8px; color: #1e1b4b; }
+.substitution-panel-hint { font-size: 0.78rem; color: #6b7280; margin: 0 0 8px; max-width: 320px; }
+.substitution-panel-options { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.btn-pronoun {
+  background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 6px;
+  padding: 6px 12px; font-size: 0.85rem; cursor: pointer; color: #4338ca;
+}
+.btn-pronoun:hover { background: #c7d2fe; }
+.substitution-panel-empty { font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; }
+
+/* ============================================================
+   TOAST STACK
+   ============================================================ */
+.notif-container {
+  position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+  z-index: 600; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.notif {
+  background: #1e1b4b; color: #fff;
+  padding: 9px 14px 9px 20px; border-radius: 20px;
+  font-size: 0.85rem; font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  display: flex; align-items: center; gap: 10px;
+}
+.notif-action {
+  background: rgba(255,255,255,0.15); border: none; color: #fff;
+  border-radius: 14px; padding: 4px 10px; font-size: 0.78rem; cursor: pointer;
+}
+.notif-action:hover { background: rgba(255,255,255,0.28); }
+
+/* ============================================================
    PRINT
    ============================================================ */
 @media print {
