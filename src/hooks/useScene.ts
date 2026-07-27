@@ -147,7 +147,9 @@ export function useScene() {
       if (!currentSelection.size) return currentSelection;
       const ids = Array.from(currentSelection);
       setTokens((prev) =>
-        prev.map((t) => (ids.includes(t.id) ? { ...t, groupId: null, fonctionId: null } : t))
+        // fonctionId cleared too: group-type fonctions (e.g. "Groupe sujet") only make sense for a group,
+        // mirroring assignFonction's reasoning in reverse.
+        pruneOrphanGroups(prev.map((t) => (ids.includes(t.id) ? { ...t, groupId: null, fonctionId: null } : t)))
       );
       return currentSelection;
     });
