@@ -5,14 +5,16 @@ import { NATURES } from '../lib/natures';
 interface Props {
   selectedCount: number;
   manipEnabled: boolean;
+  showUngroup: boolean;
   onAddPhrase: (phrase: string) => void;
   onDeselectAll: () => void;
   onAssignFonction: (id: number) => void;
   onAssignNature: (id: number) => void;
   onManip: (kind: 'deplacement' | 'effacement' | 'substitution') => void;
+  onUngroup: () => void;
 }
 
-export function Toolbox({ selectedCount, manipEnabled, onAddPhrase, onDeselectAll, onAssignFonction, onAssignNature, onManip }: Props) {
+export function Toolbox({ selectedCount, manipEnabled, showUngroup, onAddPhrase, onDeselectAll, onAssignFonction, onAssignNature, onManip, onUngroup }: Props) {
   const [phrase, setPhrase] = useState('');
 
   function submitPhrase() {
@@ -42,7 +44,14 @@ export function Toolbox({ selectedCount, manipEnabled, onAddPhrase, onDeselectAl
       <div className="tool-section">
         <div className="sel-indicator">
           <span aria-live="polite">{selectedCount} mot(s) sélectionné(s)</span>
-          <button type="button" className="btn-desel" onClick={onDeselectAll}>Désélectionner</button>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            {showUngroup && (
+              <button type="button" className="btn-ungroup" onClick={onUngroup}>
+                Dégrouper
+              </button>
+            )}
+            <button type="button" className="btn-desel" onClick={onDeselectAll}>Désélectionner</button>
+          </div>
         </div>
       </div>
 
