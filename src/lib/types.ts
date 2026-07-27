@@ -1,8 +1,4 @@
-export interface Pictogram {
-  id: number;
-  url: string;
-  keywords: string[];
-}
+import type { Pictogram } from './arasaacMapper';
 
 export interface Fonction {
   id: number;
