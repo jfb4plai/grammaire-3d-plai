@@ -23,7 +23,7 @@ export function Workspace({ tokens, selectedIds, options, onSelect, onMove, onRe
       ref={ref}
       onPointerDown={(e) => { if (e.target === e.currentTarget) onDeselectAll(); }}
     >
-      <GroupLayer tokens={tokens} containerSize={size} />
+      <GroupLayer tokens={tokens} containerSize={size} tbiMode={options.tbiMode} />
       {tokens.map((t) => (
         <TokenView
           key={t.id}

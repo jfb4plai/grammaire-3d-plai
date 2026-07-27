@@ -6,6 +6,11 @@ describe('estimateTokenWidth', () => {
     expect(estimateTokenWidth('a')).toBeGreaterThanOrEqual(70);
     expect(estimateTokenWidth('anticonstitutionnellement')).toBeGreaterThan(estimateTokenWidth('a'));
   });
+
+  it('estimates wider tokens in TBI mode, matching the larger .token-tbi CSS footprint', () => {
+    expect(estimateTokenWidth('a', true)).toBeGreaterThan(estimateTokenWidth('a', false));
+    expect(estimateTokenWidth('a', true)).toBeGreaterThanOrEqual(120);
+  });
 });
 
 describe('layoutTokensInRow', () => {
@@ -42,5 +47,12 @@ describe('layoutTokensInRow', () => {
     expect(placed[0].normX).toBeLessThanOrEqual(1);
     expect(placed[0].normY).toBeGreaterThanOrEqual(0);
     expect(placed[0].normY).toBeLessThanOrEqual(1);
+  });
+
+  it('spaces tokens further apart in TBI mode so the larger rendered footprint does not overlap', () => {
+    const normal = layoutTokensInRow(['le', 'chat', 'dort'], { x: 2000, y: 1000 }, 80);
+    const tbi = layoutTokensInRow(['le', 'chat', 'dort'], { x: 2000, y: 1000 }, 80, true);
+    expect(tbi[1].normX).toBeGreaterThan(normal[1].normX);
+    expect(tbi[2].normX).toBeGreaterThan(normal[2].normX);
   });
 });

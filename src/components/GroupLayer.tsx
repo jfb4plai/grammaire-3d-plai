@@ -5,13 +5,15 @@ import { estimateTokenWidth } from '../lib/layout';
 import { computeGroupBBox } from '../lib/groups';
 
 const TOKEN_HEIGHT = 90;
+const TOKEN_HEIGHT_TBI = 130;
 
 interface Props {
   tokens: TokenData[];
   containerSize: { x: number; y: number };
+  tbiMode: boolean;
 }
 
-export function GroupLayer({ tokens, containerSize }: Props) {
+export function GroupLayer({ tokens, containerSize, tbiMode }: Props) {
   const groups = new Map<string, TokenData[]>();
   for (const t of tokens) {
     if (!t.groupId) continue;
@@ -25,7 +27,12 @@ export function GroupLayer({ tokens, containerSize }: Props) {
       {Array.from(groups.entries()).map(([groupId, members]) => {
         const boxes = members.map((t) => {
           const p = toPixels({ x: t.normX, y: t.normY }, containerSize);
-          return { x: p.x, y: p.y, width: estimateTokenWidth(t.mot), height: TOKEN_HEIGHT };
+          return {
+            x: p.x,
+            y: p.y,
+            width: estimateTokenWidth(t.mot, tbiMode),
+            height: tbiMode ? TOKEN_HEIGHT_TBI : TOKEN_HEIGHT,
+          };
         });
         const bbox = computeGroupBBox(boxes, 14);
         if (!bbox) return null;

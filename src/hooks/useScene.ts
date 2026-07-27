@@ -38,10 +38,11 @@ export function useScene() {
     const words = tokenizePhrase(phrase);
     if (!words.length) return;
     setTokens((prev) => {
+      const rowHeight = options.tbiMode ? 130 : 90;
       const baseY = prev.length
-        ? Math.max(...prev.map((t) => t.normY * containerSize.y)) + 90
+        ? Math.max(...prev.map((t) => t.normY * containerSize.y)) + rowHeight
         : 80;
-      const placements = layoutTokensInRow(words, containerSize, baseY);
+      const placements = layoutTokensInRow(words, containerSize, baseY, options.tbiMode);
       const newTokens: TokenData[] = placements.map((p) => ({
         id: crypto.randomUUID(),
         mot: p.mot,
@@ -61,7 +62,7 @@ export function useScene() {
       }
       return [...prev, ...newTokens];
     });
-  }, [options.arasaac, fetchMissingPictos]);
+  }, [options.arasaac, options.tbiMode, fetchMissingPictos]);
 
   const enableArasaac = useCallback((enabled: boolean) => {
     setOptions((prev) => ({ ...prev, arasaac: enabled }));
