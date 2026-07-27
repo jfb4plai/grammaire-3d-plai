@@ -44,7 +44,7 @@ export function Toolbox({ selectedCount, manipEnabled, showUngroup, onAddPhrase,
       <div className="tool-section">
         <div className="sel-indicator">
           <span aria-live="polite">{selectedCount} mot(s) sélectionné(s)</span>
-          <div style={{ display: 'flex', gap: '6px' }}>
+          <div className="sel-actions">
             {showUngroup && (
               <button type="button" className="btn-ungroup" onClick={onUngroup}>
                 Dégrouper

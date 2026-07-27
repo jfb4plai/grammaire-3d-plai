@@ -94,6 +94,8 @@ header .btn-teacher:hover { background: #ec4899; color: #fff; }
   background: #f0f4ff; border-radius: 6px; padding: 5px 8px;
   font-size: 0.8rem; color: #4338ca;
 }
+
+.sel-actions { display: flex; gap: 6px; }
 .btn-desel {
   background: #e0e7ff; border: none; border-radius: 4px;
   padding: 2px 8px; font-size: 0.75rem; cursor: pointer; color: #4338ca;
