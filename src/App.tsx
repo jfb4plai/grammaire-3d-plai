@@ -7,11 +7,14 @@ import { Workspace } from './components/Workspace';
 import { BottomBar } from './components/BottomBar';
 import { SubstitutionPanel } from './components/SubstitutionPanel';
 import { ToastStack } from './components/ToastStack';
+import { PictoModal } from './components/PictoModal';
 
 export default function App() {
   const scene = useScene();
   const { toasts, showToast, dismissToast } = useToast();
   const [substitutionOpen, setSubstitutionOpen] = useState(false);
+  const [pictoModalTokenId, setPictoModalTokenId] = useState<string | null>(null);
+  const pictoModalToken = pictoModalTokenId ? scene.tokens.find((t) => t.id === pictoModalTokenId) ?? null : null;
 
   function handleAddPhrase(phrase: string) {
     const workspaceEl = document.getElementById('workspace');
@@ -82,7 +85,7 @@ export default function App() {
           onSelect={scene.toggleSelection}
           onMove={scene.moveToken}
           onRemove={scene.removeToken}
-          onOpenPictoModal={() => { /* wired in Task 24 */ }}
+          onOpenPictoModal={setPictoModalTokenId}
           onDeselectAll={scene.deselectAll}
         />
       </div>
@@ -96,6 +99,15 @@ export default function App() {
           fonctionId={firstSelectedFonctionId}
           onPick={handlePronounPick}
           onClose={() => setSubstitutionOpen(false)}
+        />
+      )}
+      {pictoModalToken && (
+        <PictoModal
+          token={pictoModalToken}
+          allowCustomImg={scene.options.customImg}
+          onSelectPicto={(idx) => scene.selectPicto(pictoModalToken.id, idx)}
+          onSelectCustomImg={(dataUrl) => scene.selectCustomImg(pictoModalToken.id, dataUrl)}
+          onClose={() => setPictoModalTokenId(null)}
         />
       )}
       <ToastStack toasts={toasts} onDismiss={dismissToast} />

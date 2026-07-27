@@ -5,6 +5,7 @@ import { tokenizePhrase } from '../lib/tokenizer';
 import { layoutTokensInRow } from '../lib/layout';
 import { clampToContainer, toNormalized, toPixels } from '../lib/coordinates';
 import { FONCTIONS } from '../lib/fonctions';
+import { searchPictograms } from '../lib/arasaac';
 
 function pruneOrphanGroups(tokens: TokenData[]): TokenData[] {
   const counts = new Map<string, number>();
@@ -20,6 +21,18 @@ export function useScene() {
   const [tokens, setTokens] = useState<TokenData[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [options, setOptions] = useState<TeacherOptions>(DEFAULT_OPTIONS);
+
+  const fetchMissingPictos = useCallback((ids: string[]) => {
+    setTokens((currentTokens) => {
+      const targets = currentTokens.filter((t) => ids.includes(t.id) && t.pictoOptions.length === 0);
+      targets.forEach((t) => {
+        searchPictograms(t.mot).then((results) => {
+          setTokens((prev) => prev.map((x) => (x.id === t.id ? { ...x, pictoOptions: results } : x)));
+        }).catch(() => { /* leave pictoOptions empty; placeholder stays visible */ });
+      });
+      return currentTokens;
+    });
+  }, []);
 
   const addTokensFromPhrase = useCallback((phrase: string, containerSize: { x: number; y: number }) => {
     const words = tokenizePhrase(phrase);
@@ -43,9 +56,22 @@ export function useScene() {
         customImg: null,
         effaced: false,
       }));
+      if (options.arasaac) {
+        fetchMissingPictos(newTokens.map((t) => t.id));
+      }
       return [...prev, ...newTokens];
     });
-  }, []);
+  }, [options.arasaac, fetchMissingPictos]);
+
+  const enableArasaac = useCallback((enabled: boolean) => {
+    setOptions((prev) => ({ ...prev, arasaac: enabled }));
+    if (enabled) {
+      setTokens((currentTokens) => {
+        fetchMissingPictos(currentTokens.map((t) => t.id));
+        return currentTokens;
+      });
+    }
+  }, [fetchMissingPictos]);
 
   const moveToken = useCallback((id: string, pixel: { x: number; y: number }, elementSize: { x: number; y: number }, containerSize: { x: number; y: number }) => {
     const clamped = clampToContainer(pixel, elementSize, containerSize);
@@ -176,6 +202,14 @@ export function useScene() {
     );
   }, []);
 
+  const selectPicto = useCallback((id: string, idx: number) => {
+    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, selectedPictoIdx: idx, customImg: null } : t)));
+  }, []);
+
+  const selectCustomImg = useCallback((id: string, dataUrl: string) => {
+    setTokens((prev) => prev.map((t) => (t.id === id ? { ...t, customImg: dataUrl } : t)));
+  }, []);
+
   const clearAll = useCallback(() => {
     setTokens([]);
     setSelectedIds(new Set());
@@ -204,6 +238,9 @@ export function useScene() {
     doEffacement,
     doSubstitution,
     undoSubstitution,
+    selectPicto,
+    selectCustomImg,
+    enableArasaac,
     clearAll,
     loadScene,
   };
