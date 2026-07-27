@@ -8,6 +8,9 @@ import { BottomBar } from './components/BottomBar';
 import { SubstitutionPanel } from './components/SubstitutionPanel';
 import { ToastStack } from './components/ToastStack';
 import { PictoModal } from './components/PictoModal';
+import { TeacherPanel } from './components/TeacherPanel';
+import { saveScene } from './lib/scenes';
+import type { SceneRecord } from './lib/types';
 
 export default function App() {
   const scene = useScene();
@@ -15,6 +18,8 @@ export default function App() {
   const [substitutionOpen, setSubstitutionOpen] = useState(false);
   const [pictoModalTokenId, setPictoModalTokenId] = useState<string | null>(null);
   const pictoModalToken = pictoModalTokenId ? scene.tokens.find((t) => t.id === pictoModalTokenId) ?? null : null;
+  const [teacherPanelOpen, setTeacherPanelOpen] = useState(false);
+  const [sceneLibraryRefreshToken, setSceneLibraryRefreshToken] = useState(0);
 
   useEffect(() => {
     document.body.classList.toggle('tbi-mode', scene.options.tbiMode);
@@ -64,6 +69,16 @@ export default function App() {
     else document.exitFullscreen();
   }
 
+  async function handleSaveScene(titre: string) {
+    await saveScene(titre, { tokens: scene.tokens, options: scene.options });
+    setSceneLibraryRefreshToken((n) => n + 1);
+  }
+
+  function handleLoadScene(record: SceneRecord) {
+    scene.loadScene(record.data.tokens, record.data.options);
+    setTeacherPanelOpen(false);
+  }
+
   const firstSelectedId = Array.from(scene.selectedIds)[0];
   const firstSelectedFonctionId = firstSelectedId
     ? scene.tokens.find((t) => t.id === firstSelectedId)?.fonctionId ?? null
@@ -71,7 +86,7 @@ export default function App() {
 
   return (
     <>
-      <Header onOpenTeacherPanel={() => { /* wired in Task 34 */ }} />
+      <Header onOpenTeacherPanel={() => setTeacherPanelOpen(true)} />
       <div className="app-body">
         <Toolbox
           selectedCount={scene.selectedIds.size}
@@ -114,6 +129,16 @@ export default function App() {
           onClose={() => setPictoModalTokenId(null)}
         />
       )}
+      <TeacherPanel
+        open={teacherPanelOpen}
+        onClose={() => setTeacherPanelOpen(false)}
+        options={scene.options}
+        onOptionsChange={(next) => scene.setOptions(next)}
+        onArasaacToggle={scene.enableArasaac}
+        onSaveScene={handleSaveScene}
+        onLoadScene={handleLoadScene}
+        sceneLibraryRefreshToken={sceneLibraryRefreshToken}
+      />
       <ToastStack toasts={toasts} onDismiss={dismissToast} />
     </>
   );
