@@ -18,3 +18,17 @@ export function computeGroupBBox(boxes: Box[], padding: number): Box | null {
     height: maxY - minY + padding * 2,
   };
 }
+
+export interface SelectableToken {
+  id: string;
+  groupId: string | null;
+}
+
+export function isFullGroupSelected(tokens: SelectableToken[], selectedIds: Set<string>): boolean {
+  const ids = Array.from(selectedIds);
+  if (!ids.length) return false;
+  const groupId = tokens.find((t) => t.id === ids[0])?.groupId ?? null;
+  if (!groupId) return false;
+  const groupMembers = tokens.filter((t) => t.groupId === groupId);
+  return groupMembers.length === ids.length && groupMembers.every((t) => selectedIds.has(t.id));
+}
