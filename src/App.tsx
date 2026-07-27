@@ -10,6 +10,7 @@ import { ToastStack } from './components/ToastStack';
 import { PictoModal } from './components/PictoModal';
 import { TeacherPanel } from './components/TeacherPanel';
 import { saveScene } from './lib/scenes';
+import { isFullGroupSelected } from './lib/groups';
 import type { SceneRecord } from './lib/types';
 
 export default function App() {
@@ -83,6 +84,7 @@ export default function App() {
   const firstSelectedFonctionId = firstSelectedId
     ? scene.tokens.find((t) => t.id === firstSelectedId)?.fonctionId ?? null
     : null;
+  const showUngroup = isFullGroupSelected(scene.tokens, scene.selectedIds);
 
   return (
     <>
@@ -91,11 +93,13 @@ export default function App() {
         <Toolbox
           selectedCount={scene.selectedIds.size}
           manipEnabled={scene.options.manip}
+          showUngroup={showUngroup}
           onAddPhrase={handleAddPhrase}
           onDeselectAll={scene.deselectAll}
           onAssignFonction={scene.assignFonction}
           onAssignNature={scene.assignNature}
           onManip={handleManip}
+          onUngroup={scene.ungroupSelection}
         />
         <Workspace
           tokens={scene.tokens}
