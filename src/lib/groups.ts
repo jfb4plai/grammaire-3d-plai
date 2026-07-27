@@ -26,7 +26,7 @@ export interface SelectableToken {
 
 export function isFullGroupSelected(tokens: SelectableToken[], selectedIds: Set<string>): boolean {
   const ids = Array.from(selectedIds);
-  if (!ids.length) return false;
+  if (ids.length === 0) return false;
   const groupId = tokens.find((t) => t.id === ids[0])?.groupId ?? null;
   if (!groupId) return false;
   const groupMembers = tokens.filter((t) => t.groupId === groupId);

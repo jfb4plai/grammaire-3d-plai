@@ -50,4 +50,8 @@ describe('isFullGroupSelected', () => {
   it('returns false when the selection includes a token outside the group', () => {
     expect(isFullGroupSelected(tokens, new Set(['a', 'b', 'd']))).toBe(false);
   });
+
+  it('returns false when the first selected id belongs to a different group than the rest', () => {
+    expect(isFullGroupSelected(tokens, new Set(['d', 'a', 'b']))).toBe(false);
+  });
 });
