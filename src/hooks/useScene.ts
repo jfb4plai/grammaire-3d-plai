@@ -142,6 +142,17 @@ export function useScene() {
     });
   }, []);
 
+  const ungroupSelection = useCallback(() => {
+    setSelectedIds((currentSelection) => {
+      if (!currentSelection.size) return currentSelection;
+      const ids = Array.from(currentSelection);
+      setTokens((prev) =>
+        prev.map((t) => (ids.includes(t.id) ? { ...t, groupId: null, fonctionId: null } : t))
+      );
+      return currentSelection;
+    });
+  }, []);
+
   const doDeplacement = useCallback((containerSize: { x: number; y: number }) => {
     let moved = 0;
     setTokens((prev) => {
@@ -239,6 +250,7 @@ export function useScene() {
     deselectAll,
     assignFonction,
     assignNature,
+    ungroupSelection,
     doDeplacement,
     doEffacement,
     doSubstitution,
