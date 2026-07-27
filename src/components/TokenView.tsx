@@ -24,6 +24,7 @@ export function TokenView({
 }: Props) {
   const elRef = useRef<HTMLDivElement | null>(null);
   const dragState = useRef<{ startPX: number; startPY: number; moved: boolean; curX: number; curY: number } | null>(null);
+  const lastPictoPointerDown = useRef(0);
   const [dragging, setDragging] = useState(false);
 
   const pixel = toPixels({ x: token.normX, y: token.normY }, containerSize);
@@ -32,8 +33,22 @@ export function TokenView({
     : token.pictoOptions[token.selectedPictoIdx]?.url ?? null;
 
   function handlePointerDown(e: React.PointerEvent) {
-    if ((e.target as HTMLElement).dataset.closeBtn) return;
-    e.preventDefault();
+    const target = e.target as HTMLElement;
+    if (target.dataset.closeBtn) return;
+
+    // setPointerCapture below retargets every subsequent event — including the browser's
+    // compatibility click/dblclick — to this div, so a native onDoubleClick on the picto
+    // <img>/placeholder never fires. Detect the double-tap here instead, from raw pointerdown timing.
+    if (target.closest('.token-picto, .token-picto-placeholder')) {
+      const now = Date.now();
+      if (now - lastPictoPointerDown.current < 350) {
+        lastPictoPointerDown.current = 0;
+        onOpenPictoModal(token.id);
+        return;
+      }
+      lastPictoPointerDown.current = now;
+    }
+
     elRef.current?.setPointerCapture(e.pointerId);
     dragState.current = { startPX: e.clientX, startPY: e.clientY, moved: false, curX: pixel.x, curY: pixel.y };
     setDragging(true);
@@ -96,7 +111,6 @@ export function TokenView({
             src={picto}
             alt={token.mot}
             draggable={false}
-            onDoubleClick={(e) => { e.stopPropagation(); onOpenPictoModal(token.id); }}
           />
         ) : (
           <div
@@ -104,7 +118,6 @@ export function TokenView({
             role="button"
             tabIndex={0}
             aria-label={`Choisir un pictogramme pour « ${token.mot} »`}
-            onDoubleClick={(e) => { e.stopPropagation(); onOpenPictoModal(token.id); }}
             onKeyDown={(e) => { if (e.key === 'Enter') onOpenPictoModal(token.id); }}
           >
             🖼
