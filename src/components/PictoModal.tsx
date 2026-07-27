@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { TokenData } from '../lib/types';
 
 interface Props {
@@ -11,6 +11,14 @@ interface Props {
 
 export function PictoModal({ token, allowCustomImg, onSelectPicto, onSelectCustomImg, onClose }: Props) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [onClose]);
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

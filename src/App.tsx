@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useScene } from './hooks/useScene';
 import { useToast } from './hooks/useToast';
 import { Header } from './components/Header';
@@ -15,6 +15,10 @@ export default function App() {
   const [substitutionOpen, setSubstitutionOpen] = useState(false);
   const [pictoModalTokenId, setPictoModalTokenId] = useState<string | null>(null);
   const pictoModalToken = pictoModalTokenId ? scene.tokens.find((t) => t.id === pictoModalTokenId) ?? null : null;
+
+  useEffect(() => {
+    document.body.classList.toggle('tbi-mode', scene.options.tbiMode);
+  }, [scene.options.tbiMode]);
 
   function handleAddPhrase(phrase: string) {
     const workspaceEl = document.getElementById('workspace');

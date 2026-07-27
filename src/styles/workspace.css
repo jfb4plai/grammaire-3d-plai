@@ -309,6 +309,33 @@ header .btn-teacher:hover { background: #ec4899; color: #fff; }
 .btn-custom-img:hover { background: #e0e7ff; }
 
 /* ============================================================
+   TBI ACCESSIBILITY MODE
+   ============================================================ */
+:root {
+  --tbi-token-min-width: 120px;
+  --tbi-font-word: 1.15rem;
+  --tbi-font-btn: 1rem;
+  --tbi-touch-target: 44px;
+}
+
+.token-tbi { min-width: var(--tbi-token-min-width); padding: 10px 14px 8px; }
+.token-tbi .token-text { font-size: var(--tbi-font-word); max-width: 160px; }
+.token-tbi .token-picto, .token-tbi .token-picto-placeholder { width: 84px; height: 84px; }
+.token-tbi .token-close { width: 32px; height: 32px; font-size: 16px; line-height: 32px; top: -12px; right: -12px; display: block; }
+
+body.tbi-mode .btn-fonction,
+body.tbi-mode .btn-nature,
+body.tbi-mode .btn-manip,
+body.tbi-mode .btm-btn,
+body.tbi-mode .btn-add,
+body.tbi-mode .btn-desel {
+  font-size: var(--tbi-font-btn);
+  min-height: var(--tbi-touch-target);
+}
+body.tbi-mode .tool-section-title { font-size: 0.9rem; }
+body.tbi-mode .toolbox { width: 340px; min-width: 340px; }
+
+/* ============================================================
    PRINT
    ============================================================ */
 @media print {

@@ -41,7 +41,7 @@ export function Toolbox({ selectedCount, manipEnabled, onAddPhrase, onDeselectAl
 
       <div className="tool-section">
         <div className="sel-indicator">
-          <span>{selectedCount} mot(s) sélectionné(s)</span>
+          <span aria-live="polite">{selectedCount} mot(s) sélectionné(s)</span>
           <button type="button" className="btn-desel" onClick={onDeselectAll}>Désélectionner</button>
         </div>
       </div>
