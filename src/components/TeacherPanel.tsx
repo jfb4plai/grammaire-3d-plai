@@ -19,6 +19,11 @@ export function TeacherPanel({ open, onClose, options, onOptionsChange, onArasaa
   const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [signupMode, setSignupMode] = useState(false);
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPwd, setSignupPwd] = useState('');
+  const [signupPwd2, setSignupPwd2] = useState('');
+  const [signupMsg, setSignupMsg] = useState('');
   const [resetMode, setResetMode] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetMsg, setResetMsg] = useState('');
@@ -30,6 +35,21 @@ export function TeacherPanel({ open, onClose, options, onOptionsChange, onArasaa
   async function handleLogin() {
     if (!email || !password) return;
     await auth.signIn(email, password);
+  }
+
+  async function handleSignup() {
+    setSignupMsg('');
+    if (!signupEmail || !signupPwd) { setSignupMsg('Email et mot de passe requis.'); return; }
+    if (signupPwd.length < 6) { setSignupMsg('6 caractères minimum.'); return; }
+    if (signupPwd !== signupPwd2) { setSignupMsg('Les mots de passe ne correspondent pas.'); return; }
+    const res = await auth.signUp(signupEmail, signupPwd);
+    if (!res.ok) { setSignupMsg(auth.error ?? 'Erreur lors de la création du compte.'); return; }
+    if (res.needsConfirmation) {
+      setSignupMsg('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse avant de te connecter.');
+    } else {
+      setSignupMsg('Compte créé et connecté !');
+      setSignupMode(false);
+    }
   }
 
   async function handleSendReset() {
@@ -74,6 +94,17 @@ export function TeacherPanel({ open, onClose, options, onOptionsChange, onArasaa
               <button type="button" className="btn-login" onClick={handleSendReset}>Envoyer le lien</button>
               <button type="button" className="btn-cancel" onClick={() => setResetMode(false)}>Annuler</button>
             </div>
+          ) : signupMode ? (
+            <div className="tp-login">
+              <div className="tool-section-title">Créer un compte</div>
+              <input className="tp-input" type="email" placeholder="Email enseignant" value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} />
+              <p className="tp-hint">Utilise ton email professionnel — il servira à te reconnecter.</p>
+              <input className="tp-input" type="password" placeholder="Mot de passe (6 car. min.)" value={signupPwd} onChange={(e) => setSignupPwd(e.target.value)} />
+              <input className="tp-input" type="password" placeholder="Confirme le mot de passe" value={signupPwd2} onChange={(e) => setSignupPwd2(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSignup(); }} />
+              <button type="button" className="btn-login" onClick={handleSignup}>Créer mon compte</button>
+              <div className="tp-status">{signupMsg}</div>
+              <button type="button" className="btn-cancel" onClick={() => { setSignupMode(false); setSignupMsg(''); }}>Annuler</button>
+            </div>
           ) : (
             <div className="tp-login">
               <div className="tool-section-title">Connexion</div>
@@ -82,6 +113,7 @@ export function TeacherPanel({ open, onClose, options, onOptionsChange, onArasaa
               <button type="button" className="btn-login" onClick={handleLogin}>Se connecter</button>
               <div className="tp-error">{auth.error}</div>
               <button type="button" className="tp-link" onClick={() => { setResetEmail(email); setResetMode(true); }}>Mot de passe oublié ?</button>
+              <button type="button" className="tp-link" onClick={() => { setSignupEmail(email); setSignupMode(true); }}>Créer un compte</button>
             </div>
           )
         ) : (

@@ -23,6 +23,14 @@ export function useAuth() {
     return !err;
   }, []);
 
+  const signUp = useCallback(async (email: string, password: string) => {
+    setError(null);
+    const { data, error: err } = await supabase.auth.signUp({ email, password });
+    if (err) { setError(err.message); return { ok: false, needsConfirmation: false }; }
+    const needsConfirmation = !data.session;
+    return { ok: true, needsConfirmation };
+  }, []);
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
   }, []);
@@ -40,5 +48,5 @@ export function useAuth() {
     return err ? err.message : null;
   }, []);
 
-  return { session, error, passwordRecovery, signIn, signOut, sendPasswordReset, updatePassword };
+  return { session, error, passwordRecovery, signIn, signUp, signOut, sendPasswordReset, updatePassword };
 }
